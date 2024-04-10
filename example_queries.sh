@@ -1,3 +1,4 @@
+# Get counterfactual
 curl --request POST \
   --url http://localhost:8000/counterfactual/ \
   --header 'Content-Type: application/json' \
@@ -13,3 +14,12 @@ curl --request POST \
 	"gender": "Female",
 	"hours_per_week": 38
 }'
+
+# Upload file
+curl --request POST \
+  --url http://localhost:8000/upload/ \
+  --header 'Content-Type: multipart/form-data' \
+  --header 'User-Agent: insomnia/8.6.1' \
+  --cookie csrftoken=o4qK7gzrfmNWXYoe6Uf8U3cuXJopt98J \
+  --form 'file=@path' \
+  --form title=test
