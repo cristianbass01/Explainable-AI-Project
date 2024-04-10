@@ -17,3 +17,4 @@
 * 28. (2h): Meeting with supervisor
 ## April 2024 ()
 * 04. (1h): Meeting
+* 10. (9h): Implementing initial backend. Endpoints to query dice for counterfactuals. upload model to backend
