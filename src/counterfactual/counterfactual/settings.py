@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'dice_ml',
-    'rest_framework',
+    'counterfactual.models'
 ]
 
 MIDDLEWARE = [
