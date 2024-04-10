@@ -1,5 +1,9 @@
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
+#from django.views.decorators.csrf import csrf_protect 
+from django.views.decorators.csrf import csrf_exempt
+import json
+import pandas as pd
 
 from counterfactual.models.factory import CounterfactualFactory, DICE
 
@@ -7,19 +11,25 @@ import dice_ml
 from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
 
-@require_http_methods(["GET"])
+# TODO: upload models and allow user to choose which model to use through a parameter
+@require_http_methods(["POST"])
+@csrf_exempt
 def gen_counterfactual(request):
     """
     Get counterfactuals
     """
-
-    gen_type = request.GET.get('type', DICE)
-    factory = CounterfactualFactory()
-
     try:
-        gen = factory.create_counterfactual(gen_type)
-    except ValueError:
-        return HttpResponse("Invalid generator type", status=400)
+        body = json.loads(request.body)
+        query = pd.DataFrame.from_dict(body, orient='index').T
 
-    json = gen.get_counterfactuals()
-    return HttpResponse(json, content_type='application/json')
+        gen_type = request.GET.get('type', DICE)
+        factory = CounterfactualFactory()
+
+        gen = factory.create_counterfactual(gen_type)
+        counerfactual = gen.get_counterfactuals(query)
+
+        return HttpResponse(counerfactual, content_type='application/json')
+    except ValueError:
+        return JsonResponse({"Invalid generator type"}, status=400)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)

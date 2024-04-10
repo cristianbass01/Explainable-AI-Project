@@ -21,11 +21,12 @@ class DiceGenerator(models.Model):
                           backend='TF2', func="ohe-min-max")
 
         self.gen = dice_ml.Dice(d,m)
-        # TODO: remove
+        # TODO: remove. For now just used for testing
         self.test_sample = test_dataset.drop(columns="income")[0:1]
     
-    def get_counterfactuals(self):
-        query_instance = self.test_sample
+    def get_counterfactuals(self, query_instance = None):
+        if query_instance is None:
+            query_instance = self.test_sample
         cfs = self.gen.generate_counterfactuals(query_instance, total_CFs=4, desired_class="opposite")
         return cfs.cf_examples_list[0].final_cfs_df.to_json(orient='records')
 
