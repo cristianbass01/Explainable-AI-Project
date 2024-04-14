@@ -18,3 +18,4 @@
 ## April 2024 ()
 * 04. (1h): Meeting
 * 10. (9h): Implementing initial backend. Endpoints to query dice for counterfactuals. upload model to backend
+* 14. (3h 30m): Read papers and write introduction for interrim report
