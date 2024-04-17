@@ -13,6 +13,7 @@
 * 26. (1h 02m): Read TU Masters thesis on a CF visualization application
 * 28. (2h): Meet with supervisor, discuss requirements 
 * 29. (2h 53m): Read DiCe paper + take notes
-## April 2024 (3h 34m)
+## April 2024 (7h 14m)
 * 04. (1h): Meet with supervisor, discuss upcoming deliverables
 * 10. (2h 34m): Work on DiCe/ Django Back-end with group
+* 17. (3h 40m): Write Methods section + Read user study (Greta 2023)
