@@ -11,3 +11,5 @@ Tips: Only two options. Many visualisations = big cognitive load. Ordering matte
 ** Define exactly what we expect to receive and what will we output/design API for our postprocessing wrapper
 ** Make backend
 
+** When doing binning add an option to the UI to enable and disable it for the user study
+** Make one hot encoding of categorical features and revert before returning the json with a counterfactual
