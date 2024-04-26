@@ -24,10 +24,10 @@ class DiceGenerator(models.Model):
         # TODO: remove. For now just used for testing
         self.test_sample = test_dataset.drop(columns="income")[0:1]
     
-    def get_counterfactuals(self, query_instance = None):
+    def get_counterfactuals(self, query_instance = None, features_to_vary = "all", count = 1):
         if query_instance is None:
             query_instance = self.test_sample
-        cfs = self.gen.generate_counterfactuals(query_instance, total_CFs=4, desired_class="opposite")
+        cfs = self.gen.generate_counterfactuals(query_instance, total_CFs=count, desired_class="opposite", features_to_vary=features_to_vary)
         return cfs.cf_examples_list[0].final_cfs_df.to_json(orient='records')
 
     

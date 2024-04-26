@@ -21,13 +21,19 @@ def gen_counterfactual(request):
     """
     try:
         body = json.loads(request.body)
-        query = pd.DataFrame.from_dict(body, orient='index').T
+        query = pd.DataFrame.from_dict(body['query'], orient='index').T
 
-        gen_type = request.GET.get('type', DICE)
+        gen_type = body['type']
+
+        featuresToVary = "all"
+        count = body['count']
+        if "featuresToVary" in body:
+            featuresToVary = body['featuresToVary']
+
         factory = CounterfactualFactory()
 
         gen = factory.create_counterfactual(gen_type)
-        counerfactual = gen.get_counterfactuals(query)
+        counerfactual = gen.get_counterfactuals(query, featuresToVary, count)
 
         return HttpResponse(counerfactual, content_type='application/json')
     except ValueError:
