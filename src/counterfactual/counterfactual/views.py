@@ -2,6 +2,7 @@ from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.views.decorators.csrf import csrf_exempt
 import json
+from raiutils.exceptions import UserConfigValidationException
 import pandas as pd
 
 from counterfactual.models.factory import CounterfactualFactory, DICE
@@ -40,6 +41,8 @@ def gen_counterfactual(request):
         return JsonResponse({"Invalid generator type"}, status=400)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
+    except UserConfigValidationException:
+        return HttpResponse("Counterfactuals not found", status=404)
 
 
 @require_http_methods(["POST"])
