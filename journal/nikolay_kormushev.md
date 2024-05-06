@@ -19,3 +19,6 @@
 * 04. (1h): Meeting
 * 10. (9h): Implementing initial backend. Endpoints to query dice for counterfactuals. upload model to backend
 * 14. (3h 30m): Read papers and write introduction for interrim report
+* 25. (2h 30m): Read optbinning paper
+* 26. (1h 25m): Update backend with better json format and handle exceptions for no counterfactuals
+* 26. (1h): Meeting

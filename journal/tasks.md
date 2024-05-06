@@ -13,3 +13,14 @@ Tips: Only two options. Many visualisations = big cognitive load. Ordering matte
 
 ** When doing binning add an option to the UI to enable and disable it for the user study
 ** Make one hot encoding of categorical features and revert before returning the json with a counterfactual
+
+* Meeting 26.04
+** Add to backend check if model supports locking. Maybe only locking models
+** Connect uploaded model to generator
+** Think about how we are going to read the models and what types we are going to support
+** Start with the UI
+** Compare this without binning
+** Compare without users (HOW???) A measure for how easy it will be for a user without a user
+What method we want to use
+Did they miss a method
+If it doesn't exist can we create it
