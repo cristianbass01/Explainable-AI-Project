@@ -28,7 +28,11 @@ def gen_counterfactual(request):
         gen_type = body['type']
 
         featuresToVary = "all"
-        count = body['count']
+        if "count" in body:
+            count = body['count']
+        else:
+            count = 1
+
         if "featuresToVary" in body:
             featuresToVary = body['featuresToVary']
         
