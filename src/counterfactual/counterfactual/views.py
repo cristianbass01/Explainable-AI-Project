@@ -4,6 +4,7 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from raiutils.exceptions import UserConfigValidationException
 import pandas as pd
+from django.core.exceptions import ValidationError
 
 from counterfactual.models.factory import CounterfactualFactory, DICE
 from counterfactual.forms import UploadFileForm
@@ -52,9 +53,16 @@ def upload_file(request):
         mm = ModelManager()
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            mm.save_model(request.POST.get('title'), request.FILES["file"])
+            mm.save_model(request.POST.get('title'), request.POST.get('modelType'), request.FILES["file"])
             return HttpResponse("Success", status=200)
         else:
+            if form.errors.get('modelType') is not None:
+                return HttpResponse(form.errors['modelType'], status=400)
             return HttpResponse("Invalid Form", status=400)
     except Exception as e:
         return HttpResponse("Internal Server Error", status=500)
+
+
+@require_http_methods(["GET"])
+def get_models(request):
+    return JsonResponse(ModelManager().get_models(), status=200)

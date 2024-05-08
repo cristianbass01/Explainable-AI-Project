@@ -12,11 +12,20 @@ class ModelManager(models.Model):
     def __init__(self):
         print()
     
-    def save_model(self, title, file):
+    def get_models(self):
+        modelDB_copy = [{"title": title,
+                        "type": model['type']} for title, model in modelDB.items()]
+
+        return { "models": modelDB_copy }
+    
+    def save_model(self, title, modelType, file):
         extension = os.path.splitext(file.name)[1]
         path = "{:}/{:}{:}".format(BASE_PATH, title, extension)
         with open(path, "wb+") as destination:
             for chunk in file.chunks():
                 destination.write(chunk)
         
-        modelDB[title] = path
+        modelDB[title] = {
+            "path": path,
+            "type": modelType
+        }

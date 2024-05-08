@@ -21,5 +21,6 @@ from . import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('counterfactual/', views.gen_counterfactual),
-    path('upload/', views.upload_file)
+    path('upload/', views.upload_file),
+    path('models/', views.get_models)
 ]
