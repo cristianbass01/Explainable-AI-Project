@@ -30,3 +30,9 @@ curl --request POST \
   --form 'file=@/home/nikolay/Downloads/David W. Hosmer - Applied Logistic Regression - 3rd Edition.pdf' \
   --form title=testing5 \
   --form modelType=TF
+
+# Get models
+curl --request GET \
+  --url http://localhost:8000/models/ \
+  --header 'User-Agent: insomnia/8.6.1' \
+  --cookie csrftoken=o4qK7gzrfmNWXYoe6Uf8U3cuXJopt98J
