@@ -31,15 +31,18 @@ def gen_counterfactual(request):
         count = body['count']
         if "featuresToVary" in body:
             featuresToVary = body['featuresToVary']
-
+        
+        modelName = body['modelName']
+        mm = ModelManager()
+        model = mm.get_model(modelName)
         factory = CounterfactualFactory()
 
-        gen = factory.create_counterfactual(gen_type)
+        gen = factory.create_counterfactual(gen_type, model)
         counerfactual = gen.get_counterfactuals(query, featuresToVary, count)
 
         return HttpResponse(counerfactual, content_type='application/json')
-    except ValueError:
-        return JsonResponse({"Invalid generator type"}, status=400)
+    except ValueError as e:
+        return HttpResponse(str(e), status=400)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
     except UserConfigValidationException:

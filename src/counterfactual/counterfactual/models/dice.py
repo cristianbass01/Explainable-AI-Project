@@ -4,7 +4,7 @@ from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
 
 class DiceGenerator(models.Model):
-    def __init__(self):
+    def __init__(self, model):
         super().__init__()
         dataset = helpers.load_adult_income_dataset()
         target = dataset["income"] # outcome variable
@@ -17,8 +17,8 @@ class DiceGenerator(models.Model):
                          continuous_features=['age', 'hours_per_week'],
                          outcome_name='income')
 
-        m = dice_ml.Model(model_path=dice_ml.utils.helpers.get_adult_income_modelpath(),
-                          backend='TF2', func="ohe-min-max")
+        m = dice_ml.Model(model = model.get_model(),
+                          backend = model.get_type(), func="ohe-min-max")
 
         self.gen = dice_ml.Dice(d,m)
         # TODO: remove. For now just used for testing
