@@ -9,6 +9,7 @@ from django.core.exceptions import ValidationError
 from counterfactual.models.factory import CounterfactualFactory, DICE
 from counterfactual.forms import UploadFileForm
 from counterfactual.models.modelManager import ModelManager
+from counterfactual.models.datasetManager import DatasetManager
 
 import dice_ml
 from dice_ml.utils import helpers # helper functions
@@ -36,12 +37,19 @@ def gen_counterfactual(request):
         if "featuresToVary" in body:
             featuresToVary = body['featuresToVary']
         
+
+        
         modelName = body['modelName']
         mm = ModelManager()
         model = mm.get_model(modelName)
+
+        dataset_name = body['dataset']
+        dm = DatasetManager()
+        dataset = dm.get_dataset(dataset_name)
+
         factory = CounterfactualFactory()
 
-        gen = factory.create_counterfactual(gen_type, model)
+        gen = factory.create_counterfactual(gen_type, model, dataset)
         counerfactual = gen.get_counterfactuals(query, featuresToVary, count)
 
         return HttpResponse(counerfactual, content_type='application/json')

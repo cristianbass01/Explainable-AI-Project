@@ -1,18 +1,11 @@
 from typing import Iterable
 from django.db import models
-import os
 from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
-import tensorflow as tf
-import torch
-import pickle
 import dice_ml
-
-
-BASE_PATH = "./src/counterfactual/counterfactual/uploads"
+from counterfactual.models.fileManager import FileManager
 
 # In memory simulation of db that keeps info on model paths
-
 modelDB = {
     "adult_income": {
         "path": dice_ml.utils.helpers.get_adult_income_modelpath(),
@@ -21,17 +14,7 @@ modelDB = {
 }
 
 class Model:
-    def __init__(self, modelPath, modelType) -> None:
-        if modelType == "TF" or "TF2":
-            model = tf.keras.models.load_model(modelPath)
-        elif modelType == "PT":
-            model = torch.load(modelPath)
-        elif modelType == "SK":
-            with open(modelPath, 'rb') as f:
-                model = pickle.load(f)
-        else:
-            raise ValueError("Invalid model type")
-
+    def __init__(self, model, modelType) -> None:
         self.model = model
         self.type = modelType
     
@@ -42,6 +25,10 @@ class Model:
         return self.type
 
 class ModelManager(models.Model):
+    def __init__(self) -> None:
+        super().__init__()
+        self.FileManager = FileManager()
+
     def get_model(self, title):
         if title not in modelDB:
             raise ValueError("Model name not found")
@@ -50,11 +37,12 @@ class ModelManager(models.Model):
         modelPath = modelMetadata['path']
         modelType = modelMetadata['type']
 
+        model = self.FileManager.load_model(modelPath, modelType)
+
         return Model(
-            modelPath,
+            model,
             modelType
         )
-
 
     def get_models(self):
         modelDB_copy = [{"title": title,
@@ -63,11 +51,7 @@ class ModelManager(models.Model):
         return { "models": modelDB_copy }
     
     def save_model(self, title, modelType, file):
-        extension = os.path.splitext(file.name)[1]
-        path = "{:}/{:}{:}".format(BASE_PATH, title, extension)
-        with open(path, "wb+") as destination:
-            for chunk in file.chunks():
-                destination.write(chunk)
+        path = self.FileManager.save_file(title, file)
         
         modelDB[title] = {
             "path": path,
