@@ -17,6 +17,7 @@ curl --request POST \
 	},
 	"featuresToVary": ["hours_per_week"], # optional
 	"modelName": "adult_income",
+	"dataset": "adult_income",
 	"type": "DICE",
 	"count": 2 # optional
 }'
