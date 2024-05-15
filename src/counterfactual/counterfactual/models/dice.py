@@ -2,6 +2,7 @@ from django.db import models
 import dice_ml
 from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
+import numpy as np
 
 class DiceGenerator(models.Model):
     def __init__(self, model,dataset):
@@ -15,13 +16,18 @@ class DiceGenerator(models.Model):
                                                              test_size=0.2,
                                                              random_state=0,
                                                              stratify=target)
-
         d = dice_ml.Data(dataframe=train_dataset,
                          continuous_features=continuous_features,
                          outcome_name=target_name)
 
+
+        # TODO: FIX this hack
+        func = None
+        if model.get_title() == "adult_income":
+            func="ohe-min-max"
+
         m = dice_ml.Model(model = model.get_model(),
-                          backend = model.get_type(), func="ohe-min-max")
+                          backend = model.get_type(), func=func)
 
         self.gen = dice_ml.Dice(d,m)
     
