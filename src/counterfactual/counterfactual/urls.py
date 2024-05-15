@@ -22,5 +22,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('counterfactual/', views.gen_counterfactual),
     path('upload/', views.upload_file),
+    path('uploadDataset/', views.upload_dataset),
     path('models/', views.get_models)
 ]

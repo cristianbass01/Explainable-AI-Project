@@ -7,7 +7,7 @@ import pandas as pd
 from django.core.exceptions import ValidationError
 
 from counterfactual.models.factory import CounterfactualFactory, DICE
-from counterfactual.forms import UploadFileForm
+from counterfactual.forms import UploadFileForm, UploadDatasetForm
 from counterfactual.models.modelManager import ModelManager
 from counterfactual.models.datasetManager import DatasetManager
 
@@ -61,23 +61,33 @@ def gen_counterfactual(request):
         return HttpResponse("Counterfactuals not found", status=404)
 
 
+@require_http_methods(["GET"])
+def get_models(request):
+    return JsonResponse(ModelManager().get_models(), status=200)
+
+
+def handle_form(request, form_class, save_method):
+    form = form_class(request.POST, request.FILES)
+    if form.is_valid():
+        save_method(request.POST.get('title'), request.POST.get('type'), request.FILES["file"])
+        return HttpResponse("Success", status=200)
+    else:
+        if form.errors.get('type') is not None:
+            return HttpResponse(form.errors['type'], status=400)
+        return HttpResponse("Invalid Form", status=400)
+
 @require_http_methods(["POST"])
 @csrf_exempt
 def upload_file(request):
     try: 
-        mm = ModelManager()
-        form = UploadFileForm(request.POST, request.FILES)
-        if form.is_valid():
-            mm.save_model(request.POST.get('title'), request.POST.get('modelType'), request.FILES["file"])
-            return HttpResponse("Success", status=200)
-        else:
-            if form.errors.get('modelType') is not None:
-                return HttpResponse(form.errors['modelType'], status=400)
-            return HttpResponse("Invalid Form", status=400)
+        return handle_form(request, UploadFileForm, ModelManager().save_model)
     except Exception as e:
         return HttpResponse("Internal Server Error", status=500)
 
-
-@require_http_methods(["GET"])
-def get_models(request):
-    return JsonResponse(ModelManager().get_models(), status=200)
+@require_http_methods(["POST"])
+@csrf_exempt
+def upload_dataset(request):
+    try: 
+        return handle_form(request, UploadDatasetForm, DatasetManager().save_dataset)
+    except Exception as e:
+        return HttpResponse("Internal Server Error", status=500)
