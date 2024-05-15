@@ -13,11 +13,12 @@ class UploadFileForm(forms.Form):
 
     def clean_type(self):
         modelType = self.cleaned_data.get('type')
-        return validate_type(modelType, ['TF', 'TF2', 'PT', 'SK'])
+        return validate_type(modelType, ['TF', 'TF2', 'PT', 'sklearn'])
 
 class UploadDatasetForm(forms.Form):
     title = forms.CharField(max_length=50)
     type = forms.CharField(max_length=50)
+    target = forms.CharField(max_length=50)
     file = forms.FileField()
 
     def clean_type(self):

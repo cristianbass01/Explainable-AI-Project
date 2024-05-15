@@ -14,10 +14,14 @@ modelDB = {
 }
 
 class Model:
-    def __init__(self, model, modelType) -> None:
+    def __init__(self, title, model, modelType) -> None:
+        self.title = title
         self.model = model
         self.type = modelType
     
+    def get_title(self):
+        return self.title
+
     def get_model(self):
         return self.model
     
@@ -40,6 +44,7 @@ class ModelManager(models.Model):
         model = self.FileManager.load_model(modelPath, modelType)
 
         return Model(
+            title,
             model,
             modelType
         )

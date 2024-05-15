@@ -37,8 +37,6 @@ def gen_counterfactual(request):
         if "featuresToVary" in body:
             featuresToVary = body['featuresToVary']
         
-
-        
         modelName = body['modelName']
         mm = ModelManager()
         model = mm.get_model(modelName)
@@ -88,6 +86,8 @@ def upload_file(request):
 @csrf_exempt
 def upload_dataset(request):
     try: 
-        return handle_form(request, UploadDatasetForm, DatasetManager().save_dataset)
+        save_dataset_lambda = lambda title, type, file: \
+              DatasetManager().save_dataset(title, type, file, request.POST.get('target'))
+        return handle_form(request, UploadDatasetForm, save_dataset_lambda)
     except Exception as e:
         return HttpResponse("Internal Server Error", status=500)

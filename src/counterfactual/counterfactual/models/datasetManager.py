@@ -66,10 +66,11 @@ class DatasetManager:
 
         return { "models": dataset_metadata }
     
-    def save_dataset(self, title, datasetType, file):
+    def save_dataset(self, title, datasetType, file, target):
         path = self.FileManager.save_file(title, file)
         
         datasetDB[title] = {
             "path": path,
-            "type": datasetType
+            "type": datasetType,
+            "target": target
         }

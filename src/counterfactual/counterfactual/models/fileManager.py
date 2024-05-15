@@ -2,6 +2,7 @@ import os
 import torch
 import tensorflow as tf
 import pickle
+import pandas as pd
 
 BASE_PATH = "./src/counterfactual/counterfactual/uploads"
 
@@ -15,16 +16,19 @@ class FileManager:
         
         return path
     
-    def load_dataset(self, modelPath, modelType):
-        raise ValueError("Not implemented yet")
-        #return model
+    def load_dataset(self, path, type):
+        if type == "csv":
+            dataset = pd.read_csv(path)
+        else:
+            raise ValueError("Not implemented yet")
+        return dataset
 
     def load_model(self, modelPath, modelType):
-        if modelType == "TF" or "TF2":
+        if modelType == "TF" or modelType == "TF2":
             model = tf.keras.models.load_model(modelPath)
         elif modelType == "PT":
             model = torch.load(modelPath)
-        elif modelType == "SK":
+        elif modelType == "sklearn":
             with open(modelPath, 'rb') as f:
                 model = pickle.load(f)
         else:
