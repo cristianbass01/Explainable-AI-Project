@@ -1,0 +1,83 @@
+from data.csv
+
+idx: 197
+ORIGINAL:
+{
+		"gender": 0,
+		"age": 42.0,
+		"hypertension": 1,
+		"heart_disease": 0,
+		"smoking_history": 1,
+		"bmi": 44.41,
+		"HbA1c_level": 6.2,
+		"blood_glucose_level": 158
+}
+
+CF: 
+{
+    "gender": 0.0,
+    "age": 42.0,
+    "hypertension": 1.0,
+    "heart_disease": 0.0,
+    "smoking_history": 1.0,
+    "bmi": 44.41,
+    "HbA1c_level": 7.7,
+    "blood_glucose_level": 158.0,
+    "diabetes": 1,
+    "probability": 0.9642113214773296,
+    "original_probability": 0.29475222663554956
+}
+
+idx: 5551
+ORIGINAL: {
+    "gender": 0,
+    "age": 32.0,
+    "hypertension": 0,
+    "heart_disease": 0,
+    "smoking_history": 1,
+    "bmi": 13.73,
+    "HbA1c_level": 6.0,
+    "blood_glucose_level": 160
+}
+
+CF: {
+    "gender": 0.0,
+    "age": 32.0,
+    "hypertension": 0.0,
+    "heart_disease": 0.0,
+    "smoking_history": 1.0,
+    "bmi": 56.37,
+    "HbA1c_level": 6.0,
+    "blood_glucose_level": 209.0,
+    "diabetes": 1,
+    "probability": 0.5679590757100519,
+    "original_probability": 0.4576798395960089
+}
+
+idx: 9306
+ORIGINAL:
+{
+		"gender": 0.0,
+		"age": 72.0,
+		"hypertension": 1.0,
+		"heart_disease": 1.0,
+		"smoking_history": 1.0,
+		"bmi": 65.63,
+		"HbA1c_level": 7.5,
+		"blood_glucose_level": 98.0,
+		"diabetes": 0,
+		"probability": 0.730830052600806,
+		"original_probability": 0.004159624438598408
+}
+
+CF:
+{
+    "gender": 0,
+    "age": 72.0,
+    "hypertension": 1,
+    "heart_disease": 1,
+    "smoking_history": 1,
+    "bmi": 25.09,
+    "HbA1c_level": 7.5,
+    "blood_glucose_level": 200
+}
