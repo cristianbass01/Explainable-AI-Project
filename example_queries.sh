@@ -49,3 +49,9 @@ curl --request POST \
   --form title=diabetes \
   --form type=csv \
   --form target=diabetes
+
+# Get datasets
+curl --request GET \
+  --url http://localhost:8000/datasets/ \
+  --header 'User-Agent: insomnia/8.6.1' \
+  --cookie csrftoken=o4qK7gzrfmNWXYoe6Uf8U3cuXJopt98J

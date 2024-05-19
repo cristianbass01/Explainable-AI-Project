@@ -91,3 +91,8 @@ def upload_dataset(request):
         return handle_form(request, UploadDatasetForm, save_dataset_lambda)
     except Exception as e:
         return HttpResponse("Internal Server Error", status=500)
+
+
+@require_http_methods(["GET"])
+def get_datasets(request):
+    return JsonResponse(DatasetManager().get_datasets(), status=200)

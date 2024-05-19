@@ -23,5 +23,6 @@ urlpatterns = [
     path('counterfactual/', views.gen_counterfactual),
     path('upload/', views.upload_file),
     path('uploadDataset/', views.upload_dataset),
-    path('models/', views.get_models)
+    path('models/', views.get_models),
+    path('datasets/', views.get_datasets)
 ]
