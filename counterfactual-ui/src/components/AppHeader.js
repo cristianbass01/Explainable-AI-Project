@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -18,14 +18,19 @@ import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import Grid from '@mui/material/Grid';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 import counterfactuals from '../data/counterfactuals';
 
-const AppHeader = ({ onSelectCounterfactual, onUploadFeatures }) => {
+const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
-  const [fileInputRef, setFileInputRef] = useState(null);
+  const fileInputRef = useRef(null);
   const [inputFeatures, setInputFeatures] = useState([]);
   const [showFeaturesForm, setShowFeaturesForm] = useState(false);
+  const [targetVariable, setTargetVariable] = useState('');
+  const [file, setFile] = useState(null);
+  const [showUploadForm, setShowUploadForm] = useState(false);
 
   const toggleDrawer = (open) => (event) => {
     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -47,32 +52,39 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures }) => {
     setMenuAnchorEl(null);
   };
 
-  const handleUploadDataset = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      // Mock the server response
-      const mockResponse = {
-        features: [
-          { name: 'Age', type: 'numeric', locked: false },
-          { name: 'Blood Pressure', type: 'numeric', locked: false },
-          { name: 'Cholesterol', type: 'numeric', locked: false },
-          { name: 'BMI', type: 'numeric', locked: false },
-          { name: 'Glucose', type: 'numeric', locked: false }
-        ]
-      };
-      console.log("Mock upload file:", file);
-      setInputFeatures(mockResponse.features);  // Set the mock received input features
-      onUploadFeatures(mockResponse.features);  // Pass the features to parent component
-      setShowFeaturesForm(true);  // Show the features form after uploading a file
-    }
-    handleMenuClose();
+  const handleFileChange = (event) => {
+    setFile(event.target.files[0]);
   };
 
-  const handleToggleLock = (index) => {
-    const newFeatures = [...inputFeatures];
-    newFeatures[index].locked = !newFeatures[index].locked;
-    setInputFeatures(newFeatures);
-    onUploadFeatures(newFeatures);
+  const handleUploadDataset = () => {
+    if (!file || !targetVariable) {
+      alert('Please select a file and specify the target variable');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('target', targetVariable);
+
+    fetch('http://localhost:8000/uploadDataset/', {
+      method: 'POST',
+      body: formData
+    })
+      .then(response => response.json())
+      .then(data => {
+        // Handle the server response
+        console.log(data);
+        // Assuming data.features is an array of feature objects returned from the server
+        setInputFeatures(data.features);
+        onUploadFeatures(data.features);
+        setShowFeaturesForm(true);
+      })
+      .catch(error => {
+        // Handle any errors
+        console.error(error);
+      });
+
+    handleMenuClose();
   };
 
   const renderInputFeaturesForm = () => {
@@ -85,7 +97,7 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures }) => {
           {inputFeatures.map((feature, index) => (
             <Grid container spacing={2} alignItems="center" key={index} sx={{ marginBottom: 2 }}>
               <Grid item>
-                <IconButton onClick={() => handleToggleLock(index)}>
+                <IconButton onClick={() => onToggleLock(index)}>
                   {feature.locked ? <LockIcon /> : <LockOpenIcon />}
                 </IconButton>
               </Grid>
@@ -168,15 +180,41 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures }) => {
         open={Boolean(menuAnchorEl)}
         onClose={handleMenuClose}
       >
-        <MenuItem onClick={() => fileInputRef.click()}>Upload Dataset</MenuItem>
+        <MenuItem onClick={() => {
+          setShowUploadForm(true);
+          handleMenuClose();
+          setTimeout(() => {
+            fileInputRef.current.click();
+          }, 0);
+        }}>
+          Upload Dataset
+        </MenuItem>
       </Menu>
       <input
         type="file"
         accept=".csv,.xlsx"
         style={{ display: 'none' }}
-        ref={(input) => setFileInputRef(input)}
-        onChange={handleUploadDataset}
+        ref={fileInputRef}
+        onChange={handleFileChange}
       />
+      {showUploadForm && (
+        <Box sx={{ padding: 2 }}>
+          <Typography variant="h6" gutterBottom>Upload Dataset</Typography>
+          <TextField
+            label="Target Variable"
+            value={targetVariable}
+            onChange={(e) => setTargetVariable(e.target.value)}
+            fullWidth
+            sx={{ marginBottom: 2 }}
+          />
+          <Typography variant="body2" sx={{ marginTop: 2 }}>
+            {file ? `Selected file: ${file.name}` : 'No file selected'}
+          </Typography>
+          <Button variant="contained" color="primary" onClick={handleUploadDataset} sx={{ marginTop: 2 }}>
+            Upload Dataset
+          </Button>
+        </Box>
+      )}
       {showFeaturesForm ? renderInputFeaturesForm() : (
         <Box sx={{ textAlign: 'center', marginTop: 2 }}>
           <IconButton onClick={() => setShowFeaturesForm(true)}>
