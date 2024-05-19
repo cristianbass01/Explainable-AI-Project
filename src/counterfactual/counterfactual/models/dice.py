@@ -29,6 +29,7 @@ class DiceGenerator(models.Model):
         if model.get_title() == "adult_income":
             func="ohe-min-max"
 
+        self.to_add_probabilities = (model.get_type() == "sklearn")
         self.model = model.get_model()
 
         m = dice_ml.Model(model = model.get_model(),
@@ -49,16 +50,13 @@ class DiceGenerator(models.Model):
 
         return json_str
     
-    def get_counterfactuals(self, query_instance = None, features_to_vary = "all", count = 1, add_probabilities = False):
+    def get_counterfactuals(self, query_instance = None, features_to_vary = "all", count = 1):
         cfs = self.gen.generate_counterfactuals(query_instance, total_CFs=count, desired_class="opposite", features_to_vary=features_to_vary)
         json_str = cfs.cf_examples_list[0].final_cfs_df.to_json(orient='records')
 
-        if not add_probabilities:
+        if not self.to_add_probabilities:
             return json_str
 
-        # This is hacky and not model agnostic. Used for the user study and we have to discuss
-        # how to make this more general and if we want to do it cause currently we are not returning 
-        # probabailities. TODO: FIX
         original_prob = np.max(self.model.predict_proba(query_instance)[0])
         return self.add_probabilities(json_str, original_prob)
 
