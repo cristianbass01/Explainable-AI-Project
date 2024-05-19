@@ -15,7 +15,8 @@ import dice_ml
 from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
 
-# TODO: upload models and allow user to choose which model to use through a parameter
+SUPPORTED_MODELS = ['DICE']
+
 @require_http_methods(["POST"])
 @csrf_exempt
 def gen_counterfactual(request):
@@ -96,3 +97,7 @@ def upload_dataset(request):
 @require_http_methods(["GET"])
 def get_datasets(request):
     return JsonResponse(DatasetManager().get_datasets(), status=200)
+
+@require_http_methods(["GET"])
+def get_generators(request):
+    return JsonResponse({'supported_generators': SUPPORTED_MODELS}, status=200)

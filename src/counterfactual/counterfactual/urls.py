@@ -24,5 +24,6 @@ urlpatterns = [
     path('upload/', views.upload_file),
     path('uploadDataset/', views.upload_dataset),
     path('models/', views.get_models),
-    path('datasets/', views.get_datasets)
+    path('datasets/', views.get_datasets),
+    path('generators/', views.get_generators)
 ]
