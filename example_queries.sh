@@ -37,3 +37,15 @@ curl --request GET \
   --url http://localhost:8000/models/ \
   --header 'User-Agent: insomnia/8.6.1' \
   --cookie csrftoken=o4qK7gzrfmNWXYoe6Uf8U3cuXJopt98J
+
+
+# Upload datasets
+curl --request POST \
+  --url http://localhost:8000/uploadDataset/ \
+  --header 'Content-Type: multipart/form-data' \
+  --header 'User-Agent: insomnia/8.6.1' \
+  --cookie csrftoken=o4qK7gzrfmNWXYoe6Uf8U3cuXJopt98J \
+  --form file=@/home/nikolay/EMAI/Ljublajna/Explainable-AI-Project/user_study_dataset/models/data.csv \
+  --form title=diabetes \
+  --form type=csv \
+  --form target=diabetes
