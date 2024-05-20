@@ -3,7 +3,7 @@ import { Card, CardContent, Typography, Divider } from '@mui/material';
 import FeatureList from './FeatureList';
 import HiddenFeatureList from './HiddenFeatureList';
 
-const Counterfactual = ({ counterfactual, inputFeatures }) => {
+const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable }) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(counterfactual);
   const [features, setFeatures] = useState(inputFeatures);
 
@@ -15,6 +15,52 @@ const Counterfactual = ({ counterfactual, inputFeatures }) => {
   useEffect(() => {
     setFeatures(inputFeatures);
   }, [inputFeatures]);
+
+
+  const transformDatasetToInputFeatures = (dataset) => {
+    return Object.keys(dataset.columns).map((column) => ({
+      name: column,
+      type: dataset.columns[column].type,
+      values: dataset.columns[column].values,
+      locked: false,
+    }));
+  };
+
+  useEffect(() => {
+    console.log("Dataset name:", datasetName);
+    console.log("Model name:", modelName);
+    console.log("Target variable:", targetVariable);
+
+    // fetch the dataset based on the dataset name
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/datasets/');
+        const data = await response.json();
+        //find the dataset with the name datasetName
+        console.log(Object.values(data.datasets));
+        const dataset = Object.values(data.datasets).find(d => d.title === "processed_data"); //TODO: change to datasetNam
+
+        if (!dataset) {
+          console.error("Dataset not found");
+          return;
+        }
+        console.log("Dataset found:", dataset);
+        inputFeatures = transformDatasetToInputFeatures(dataset);
+        const transformedFeatures = transformDatasetToInputFeatures(dataset);
+        console.log("Transformed features:", transformedFeatures);
+        setFeatures(transformedFeatures);
+        //Remove the target variable from the features
+        const targetIndex = transformedFeatures.findIndex(feature => feature.name === targetVariable);
+        transformedFeatures.splice(targetIndex, 1);
+        setInputFeatures(transformedFeatures);
+      } catch (error) {
+        console.error('Error fetching dataset:', error);
+      }
+    }
+
+    fetchData();
+
+  }, [datasetName, setInputFeatures]);
 
   if (!selectedCounterfactual) {
     return null;  // or some fallback UI
@@ -46,17 +92,55 @@ const Counterfactual = ({ counterfactual, inputFeatures }) => {
     }
   };
 
-  const generateCounterfactual = () => {
+  const generateCounterfactual = async () => {
     console.log("Generating counterfactual...");
-    // Mock the generation of a new counterfactual
-    const mockCounterfactual = {
-      inputProbability: 80,  // Example mock data
-      predictionProbability: 95,  // Example mock data
-      features: features,  // Use the updated input features
-      hiddenFeatures: []
-    };
-    setSelectedCounterfactual(mockCounterfactual);
-    console.log("Mock generated counterfactual:", mockCounterfactual);
+    try {
+      const query = features.reduce((acc, feature) => {
+
+        console.log("Feature:", feature);
+        if (feature.type === 'categorical') {
+          if (feature.value === 'true') {
+            acc[feature.name] = 1;
+          }
+          else if (feature.value === 'false') {
+            acc[feature.name] = 0;
+          }
+          else {
+            acc[feature.name] = parseInt(feature.value)
+          }
+        }
+        else if (feature.type === 'numeric') {
+          acc[feature.name] = parseFloat(feature.value);
+        }
+        return acc;
+      }, {});
+
+      const response = await fetch('http://localhost:8000/counterfactual/', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0',
+        },
+        body: JSON.stringify({
+          query: query,
+          modelName: "model",
+          dataset: "processed_data",
+          type: 'DICE',
+        }),
+      });
+
+      const data = await response.json();
+      console.log("Generated counterfactual:", data);
+
+      // Update the state with the received counterfactual
+      if (data) {
+        setSelectedCounterfactual(data);
+      } else {
+        console.error("Counterfactual not generated:", data);
+      }
+    } catch (error) {
+      console.error('Error generating counterfactual:', error);
+    }
   };
 
   return (

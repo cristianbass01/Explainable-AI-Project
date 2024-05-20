@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
@@ -22,7 +22,7 @@ import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import counterfactuals from '../data/counterfactuals';
 
-const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock }) => {
+const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, newInputFeatures }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const fileInputRef = useRef(null);
@@ -31,6 +31,11 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock }) =
   const [targetVariable, setTargetVariable] = useState('');
   const [file, setFile] = useState(null);
   const [showUploadForm, setShowUploadForm] = useState(false);
+
+
+  useEffect(() => {
+    setInputFeatures(newInputFeatures);
+  }, [newInputFeatures]);
 
   const toggleDrawer = (open) => (event) => {
     if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
@@ -88,7 +93,10 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock }) =
   };
 
   const renderInputFeaturesForm = () => {
-    if (inputFeatures.length === 0) return null;
+    if (inputFeatures.length === 0) {
+      console.error('No input features found');
+      return null;
+    }
 
     return (
       <Box sx={{ padding: 2, maxHeight: 400, overflowY: 'auto' }}>
@@ -105,19 +113,54 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock }) =
                 <Typography variant="subtitle1" noWrap>{feature.name}</Typography>
               </Grid>
               <Grid item xs={7}>
-                <input
-                  type={feature.type === 'numeric' ? 'number' : 'text'}
-                  placeholder={`Enter ${feature.name}`}
-                  style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
-                  value={feature.value || ''}
-                  onChange={(e) => {
-                    const newFeatures = [...inputFeatures];
-                    newFeatures[index].value = e.target.value;
-                    setInputFeatures(newFeatures);
-                    onUploadFeatures(newFeatures);
-                  }}
-                  disabled={feature.locked}
-                />
+                {feature.type === 'categorical' && feature.values ? (
+                  <select
+                    value={feature.value || ''}
+                    onChange={(e) => {
+                      const newFeatures = [...inputFeatures];
+                      newFeatures[index].value = e.target.value;
+                      setInputFeatures(newFeatures);
+                      onUploadFeatures(newFeatures);
+                    }}
+                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                    disabled={feature.locked}
+                  >
+                    <option value="" disabled>Select {feature.name}</option>
+                    {feature.values.map((value, i) => (
+                      <option key={i} value={value}>{value.toString()}</option>
+                    ))}
+                  </select>
+                ) : feature.type === 'categorical' && feature.values === undefined ? (
+                  <select
+                    value={feature.value || ''}
+                    onChange={(e) => {
+                      const newFeatures = [...inputFeatures];
+                      newFeatures[index].value = e.target.value;
+                      setInputFeatures(newFeatures);
+                      onUploadFeatures(newFeatures);
+                    }}
+                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                    disabled={feature.locked}
+                  >
+                    <option value="" disabled>Select {feature.name}</option>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                  </select>
+                ) : (
+                  <input
+                    type="number"
+                    placeholder={`Enter ${feature.name}`}
+                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                    value={feature.value || ''}
+                    onChange={(e) => {
+                      const newFeatures = [...inputFeatures];
+                      newFeatures[index].value = e.target.value;
+                      setInputFeatures(newFeatures);
+                      onUploadFeatures(newFeatures);
+                    }}
+                    disabled={feature.locked}
+                  />
+                )}
               </Grid>
             </Grid>
           ))}

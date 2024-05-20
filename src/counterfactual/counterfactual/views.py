@@ -24,6 +24,7 @@ def gen_counterfactual(request):
     Get counterfactuals
     """
     try:
+        print(request.body)
         body = json.loads(request.body)
         query = pd.DataFrame.from_dict(body['query'], orient='index').T
 
@@ -53,6 +54,7 @@ def gen_counterfactual(request):
 
         return HttpResponse(counerfactual, content_type='application/json')
     except ValueError as e:
+        print(e)
         return HttpResponse(str(e), status=400)
     except json.JSONDecodeError:
         return JsonResponse({"error": "Invalid JSON"}, status=400)
@@ -81,6 +83,7 @@ def upload_file(request):
     try: 
         return handle_form(request, UploadFileForm, ModelManager().save_model)
     except Exception as e:
+        print(e)
         return HttpResponse("Internal Server Error", status=500)
 
 @require_http_methods(["POST"])
@@ -91,6 +94,7 @@ def upload_dataset(request):
               DatasetManager().save_dataset(title, type, file, request.POST.get('target'))
         return handle_form(request, UploadDatasetForm, save_dataset_lambda)
     except Exception as e:
+        print(e)
         return HttpResponse("Internal Server Error", status=500)
 
 

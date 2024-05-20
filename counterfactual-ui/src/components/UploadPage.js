@@ -1,88 +1,79 @@
 import React, { useState, useRef } from 'react';
 import { Box, Button, TextField, Typography, Grid, Paper, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 
-const UploadPage = ({ onUploadFeatures }) => {
+const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVariable }) => {
   const datasetFileInputRef = useRef(null);
   const modelFileInputRef = useRef(null);
   const [datasetFile, setDatasetFile] = useState(null);
   const [modelFile, setModelFile] = useState(null);
-  const [targetVariable, setTargetVariable] = useState('');
   const [modelType, setModelType] = useState('');
+  const navigate = useNavigate();
 
   const handleDatasetFileChange = (event) => {
-    setDatasetFile(event.target.files[0]);
-    console.log(event.target.files[0]);
+    const file = event.target.files[0];
+    setDatasetFile(file);
+    const name = file.name.split('.')[0];
+    console.log('Setting dataset name to:', name);
+    setDatasetName(name); 
   };
 
   const handleModelFileChange = (event) => {
     setModelFile(event.target.files[0]);
+    const name = event.target.files[0].name.split('.')[0];
+    console.log('Setting model name to:', name);
+    setModelName(name);
   };
 
-  const handleUploadFiles = () => {
+  const handleUploadFiles = async () => {
     if (!datasetFile || !modelFile || !targetVariable || !modelType) {
       alert('Please select both files and specify the target variable and model type');
       return;
     }
-
-    const formData = new FormData();
-
-    formData.append('title', datasetFile.name.split('.')[0]);
-    formData.append('file', datasetFile);
-    formData.append('target', targetVariable);
-    const fileType = datasetFile.type;
-    formData.append('type', fileType.split('/')[1]);
-
-    const options = {
+  
+    try {
+      const formData = new FormData();
+      formData.append('title', datasetFile.name.split('.')[0]);
+      formData.append('file', datasetFile);
+      formData.append('target', targetVariable);
+      const fileType = datasetFile.type;
+      formData.append('type', fileType.split('/')[1]);
+  
+      const options = {
         method: 'POST',
         headers: {
           'User-Agent': 'Mozilla/5.0',
         },
-        body: formData
+        body: formData,
       };
-    fetch('http://localhost:8000/uploadDataset/', options)
-      .then(response => response)
-      .then(data => {
-        // Handle the server response
-        console.log(data);
-        // Navigate to the main application page
-        window.location.href = '/app';
-      })
-      .catch(error => {
-        // Handle any errors
-        console.error(error);
-      });
-
-    const modelFormData = new FormData();
-
-    const modelTitle =  modelFile.name;
-
-    console.log(modelFile);
-
-    modelFormData.append('file', modelFile);
-    modelFormData.append('type', modelType);
-    modelFormData.append('title', modelTitle);
-
-    const modelOptions = {
+  
+      const datasetResponse = await fetch('http://localhost:8000/uploadDataset/', options);
+      const datasetData = await datasetResponse;
+      console.log(datasetData);
+  
+      const modelFormData = new FormData();
+      const modelTitle = modelFile.name.split('.')[0];
+  
+      modelFormData.append('file', modelFile);
+      modelFormData.append('type', modelType);
+      modelFormData.append('title', modelTitle);
+  
+      const modelOptions = {
         method: 'POST',
         headers: {
           'User-Agent': 'Mozilla/5.0',
         },
-        body: modelFormData
+        body: modelFormData,
       };
-    fetch('http://localhost:8000/uploadModels/', modelOptions)
-      .then(response => response)
-      .then(data => {
-        // Handle the server response
-        console.log(data);
-        // Navigate to the main application page
-        window.location.href = '/app';
-      } )
-      .catch(error => {
-        // Handle any errors
-        console.error(error);
-      });
-      
-      
+  
+      const modelResponse = await fetch('http://localhost:8000/uploadModels/', modelOptions);
+      const modelData = await modelResponse;
+      console.log(modelData);
+      navigate('/app');
+  
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -149,7 +140,6 @@ const UploadPage = ({ onUploadFeatures }) => {
           <Grid item xs={12}>
             <TextField
               label="Target Variable"
-              value={targetVariable}
               onChange={(e) => setTargetVariable(e.target.value)}
               fullWidth
             />

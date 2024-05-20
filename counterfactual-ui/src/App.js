@@ -8,6 +8,9 @@ import counterfactuals from './data/counterfactuals';
 const App = () => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(counterfactuals[0]);
   const [inputFeatures, setInputFeatures] = useState(selectedCounterfactual.features);
+  const [datasetName, setDatasetName] = useState('');
+  const [modelName, setModelName] = useState('');
+  const [targetVariable, setTargetVariable] = useState('');
 
   const handleSelectCounterfactual = (counterfactual) => {
     setSelectedCounterfactual(counterfactual);
@@ -32,7 +35,7 @@ const App = () => {
     <Router>
       <Routes>
         <Route path="/" element={<Navigate to="/upload" />} />
-        <Route path="/upload" element={<UploadPage onUploadFeatures={handleUploadFeatures} />} />
+        <Route path="/upload" element={<UploadPage setDatasetName={setDatasetName} setModelName={setModelName} setTargetVariable={setTargetVariable} targetVariable={targetVariable} />} />
         <Route 
           path="/app" 
           element={
@@ -41,11 +44,18 @@ const App = () => {
                 onSelectCounterfactual={handleSelectCounterfactual} 
                 onUploadFeatures={handleUploadFeatures} 
                 onToggleLock={handleToggleLock}
+                newInputFeatures={inputFeatures}
+                targetVariable={targetVariable}
               />
               <Counterfactual 
                 counterfactual={selectedCounterfactual} 
                 inputFeatures={inputFeatures} 
                 onToggleLock={handleToggleLock}
+                datasetName={datasetName}
+                setInputFeatures={setInputFeatures}
+                onUploadFeatures={handleUploadFeatures}
+                modelName={modelName}
+                targetVariable={targetVariable}
               />
             </>
           } 
