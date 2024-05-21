@@ -92,7 +92,7 @@ class DatasetManager:
                         "title": title,
                         "type": dataset['type'],
                         "columns": dataset['columns'],
-                        "target": dataset['type']
+                        "target": dataset['target']
                     } for title, dataset in datasetDB.items()]
 
         return { "datasets": dataset_metadata }
