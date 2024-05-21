@@ -10,6 +10,8 @@ class FileManager:
     def save_file(self, title, file):
         extension = os.path.splitext(file.name)[1]
         path = "{:}/{:}{:}".format(BASE_PATH, title, extension)
+        if not os.path.exists(BASE_PATH):
+            os.mkdir(BASE_PATH)
         with open(path, "wb+") as destination:
             for chunk in file.chunks():
                 destination.write(chunk)
