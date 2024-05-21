@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
 import json
+from raiutils.exceptions import UserConfigValidationException
 
 class DiceGenerator(models.Model):
     def __init__(self, model,dataset):
@@ -52,7 +53,12 @@ class DiceGenerator(models.Model):
     
     def get_counterfactuals(self, query_instance = None, features_to_vary = "all", count = 1):
         cfs = self.gen.generate_counterfactuals(query_instance, total_CFs=count, desired_class="opposite", features_to_vary=features_to_vary)
-        json_str = cfs.cf_examples_list[0].final_cfs_df.to_json(orient='records')
+        cfs_df = cfs.cf_examples_list[0].final_cfs_df
+
+        if cfs_df is None:
+            raise UserConfigValidationException("No counterfactuals found")
+
+        json_str = cfs_df.to_json(orient='records')
 
         if not self.to_add_probabilities:
             return json_str

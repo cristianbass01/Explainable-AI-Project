@@ -13,16 +13,67 @@ datasetDB = {
         "path": dice_ml.utils.helpers.get_adult_income_modelpath(),
         "target": "income",
         "type": "csv",
-        "columns": "",
+        "columns": {
+            'age': {'type': 'numeric'},
+            'workclass': {'type': 'categorical',
+             'values': ['Private', 'Self-Employed', 'Other/Unknown', 'Government']},
+            'education': {'type': 'categorical',
+             'values': ['Bachelors',
+              'Assoc',
+              'Some-college',
+              'School',
+              'HS-grad',
+              'Masters',
+              'Prof-school',
+              'Doctorate']},
+            'marital_status': {'type': 'categorical',
+             'values': ['Single', 'Married', 'Divorced', 'Widowed', 'Separated']},
+            'occupation': {'type': 'categorical',
+             'values': ['White-Collar',
+              'Professional',
+              'Service',
+              'Blue-Collar',
+              'Other/Unknown',
+              'Sales']},
+            'race': {'type': 'categorical', 'values': ['White', 'Other']},
+            'gender': {'type': 'categorical', 'values': ['Female', 'Male']},
+            'hours_per_week': {'type': 'numeric'},
+            'income': {'type': 'categorical', 'values': [False, True]}
+        },
+    },
+    "adult": {
+        "target": "income",
+        "type": "csv",
+        "columns": {
+            'age': {'type': 'numeric'},
+            'fnlwgt': {'type': 'numeric'},
+            'education-num': {'type': 'numeric'},
+            'capital-gain': {'type': 'numeric'},
+            'capital-loss': {'type': 'numeric'},
+            'hours-per-week': {'type': 'numeric'},
+            'income': {'type': 'categorical', 'values': [False, True]},
+            'marital-status_Non-Married': {'type': 'categorical',
+             'values': [True, False]},
+            'native-country_US': {'type': 'categorical', 'values': [True, False]},
+            'occupation_Other': {'type': 'categorical', 'values': [False, True]},
+            'race_White': {'type': 'categorical', 'values': [True, False]},
+            'relationship_Non-Husband': {'type': 'categorical', 'values': [True, False]},
+            'sex_Male': {'type': 'categorical', 'values': [True, False]},
+            'workclass_Private': {'type': 'categorical', 'values': [False, True]}
+        },
     }
 }
 
 class Dataset:
-    def __init__(self, dataset, target) -> None:
+    def __init__(self, dataset, target, title) -> None:
+        self.title = title
         self.dataset = dataset
         self.target = target
         self.continuous_features = dataset.select_dtypes(include=['float64', "int64"]).columns.tolist()
         self.continuous_features = [col for col in self.continuous_features if col != target]
+
+    def get_title(self):
+        return self.title
 
     def get_dataset(self):
         return self.dataset
@@ -42,23 +93,22 @@ class DatasetManager:
         if title not in datasetDB:
             raise ValueError("Dataset name not found")
 
-        if title == "adult_income":
-            dataset = helpers.load_adult_income_dataset()
-            return Dataset(
-                dataset,
-                datasetDB[title]['target']
-            )
-
         datasetMetadata = datasetDB[title]
+        datasetTarget = datasetMetadata['target']
         datasetPath = datasetMetadata['path']
         datasetType = datasetMetadata['type']
-        datasetTarget = datasetMetadata['target']
 
-        dataset = self.FileManager.load_dataset(datasetPath, datasetType)
+        if title == "adult_income":
+            dataset = helpers.load_adult_income_dataset()
+        elif title == "adult":
+            dataset = pd.DataFrame()
+        else: 
+            dataset = self.FileManager.load_dataset(datasetPath, datasetType)
 
         return Dataset(
             dataset,
-            datasetTarget
+            datasetTarget,
+            title
         )
 
     def get_datasets(self):
