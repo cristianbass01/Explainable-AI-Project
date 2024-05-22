@@ -53,7 +53,7 @@ const App = () => {
                 modelName={modelName}
               />
               <Counterfactual 
-                counterfactual={selectedCounterfactual} 
+                counterfactual={null} 
                 inputFeatures={inputFeatures} 
                 onToggleLock={handleToggleLock}
                 datasetName={datasetName}

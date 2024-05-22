@@ -3,7 +3,7 @@
 
 body {
   font-family: 'Arial', sans-serif;
-  font-size: x-large;
+  font-size: 32pt;
   margin: 0;
   padding: 0;
   background-color: #e0e0e0;
@@ -13,8 +13,11 @@ body {
 .AppBar {
   background-color: #f5f5f5 !important;
   color: #000 !important;
+  font-family: 'Schoolbell', cursive !important;
+
 }
 
 .MuiTypography-root {
   font-family: 'Schoolbell', cursive !important;
+  font-size: 20pt !important;
 }
