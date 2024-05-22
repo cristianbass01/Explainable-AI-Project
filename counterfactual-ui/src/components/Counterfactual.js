@@ -4,7 +4,7 @@ import FeatureList from './FeatureList';
 import HiddenFeatureList from './HiddenFeatureList';
 
 const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable }) => {
-  const [selectedCounterfactual, setSelectedCounterfactual] = useState(counterfactual);
+  const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
   const [features, setFeatures] = useState(inputFeatures);
 
   useEffect(() => {
@@ -38,7 +38,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
         const data = await response.json();
         //find the dataset with the name datasetName
         console.log(Object.values(data.datasets));
-        const dataset = Object.values(data.datasets).find(d => d.title === "processed_data"); //TODO: change to datasetNam
+        const dataset = Object.values(data.datasets).find(d => d.title === "processed_data"); //TODO: change to datasetName
 
         if (!dataset) {
           console.error("Dataset not found");
@@ -92,6 +92,58 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     }
   };
 
+  const parseCounterfactual = (raw_data) => {
+
+    console.log("Parsing counterfactual...");
+    return raw_data.map(item => {
+
+      // Initialize the counterfactual features, changes, and hidden features
+      const CounterfactualFeatures = [];
+      const changes = [];
+      const hiddenFeatures = [];
+
+      // Extract the input and prediction probabilities
+      const inputProbability = (item.original_probability * 100).toFixed(2);
+      const predictionProbability = (item.probability * 100).toFixed(2);
+
+      // Extract the features
+      for (let feature of features) {
+        if (feature === targetVariable) {
+          continue; // Skip the target variable
+        }
+
+        // Create a dictionary for each feature
+        const featureDict = {};
+
+        // Extract the feature name, counterfactual, value, and lock status
+        featureDict['name'] = feature.name;
+        featureDict['counterfactual'] = item[feature.name];
+        featureDict['value'] = feature.value;
+        featureDict['locked'] = false;
+        featureDict['changed'] = feature.value !== item[feature.name];
+        if (featureDict['changed']) {
+          changes.push(feature.name);
+        }
+        if (feature.isHidden) {
+          hiddenFeatures.push(featureDict);
+        }
+        else {
+          CounterfactualFeatures.push(featureDict);
+        }
+      }
+
+      // Add to a counterFactual to return
+      const counterFactual = {}
+      counterFactual['inputProbability'] = inputProbability;
+      counterFactual['predictionProbability'] = predictionProbability;
+      counterFactual['changes'] = changes;
+      counterFactual['features'] = CounterfactualFeatures;
+      counterFactual['hiddenFeatures'] = hiddenFeatures;
+      return counterFactual;
+    });
+
+  }
+
   const generateCounterfactual = async () => {
     console.log("Generating counterfactual...");
     try {
@@ -130,11 +182,18 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
       });
 
       const data = await response.json();
+
       console.log("Generated counterfactual:", data);
 
       // Update the state with the received counterfactual
       if (data) {
-        setSelectedCounterfactual(data);
+        // setSelectedCounterfactual(data);
+        const newCounterFactual = parseCounterfactual(data);
+        console.log("New counterfactual:", newCounterFactual);
+        const updatedFeatures = newCounterFactual[0].features;
+        const updatedHiddenFeatures = newCounterFactual[0].hiddenFeatures;
+        setSelectedCounterfactual({ ...selectedCounterfactual, features: updatedFeatures, hiddenFeatures: updatedHiddenFeatures });
+
       } else {
         console.error("Counterfactual not generated:", data);
       }
