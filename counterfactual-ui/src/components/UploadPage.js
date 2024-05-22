@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Box, Button, TextField, Typography, Grid, Paper, Select, MenuItem, FormControl, InputLabel } from '@mui/material';
+import { Box, Button, TextField, Typography, Grid, Paper, Select, MenuItem, FormControl, InputLabel, Divider } from '@mui/material';
+import {PostAdd, NoteAdd, Upload} from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom';
 
 const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVariable }) => {
@@ -80,15 +81,18 @@ const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVar
     <Box sx={{ padding: 4, display: 'flex', justifyContent: 'center' }}>
       <Paper elevation={3} sx={{ padding: 4, width: '100%', maxWidth: 600 }}>
         <Typography variant="h4" gutterBottom>Upload Files</Typography>
-        <Grid container spacing={2}>
-          <Grid item xs={12}>
+        <Divider style={{ margin: '20px 0' }} />
+        <Typography variant="h5" gutterBottom>Dataset</Typography>
+        <Grid container spacing={2} alignItems={'center'}>
+          <Grid item xs={7}>
             <Button
+              startIcon={<NoteAdd />}
               variant="contained"
               color="primary"
               onClick={() => datasetFileInputRef.current.click()}
               fullWidth
             >
-              Choose Dataset File
+              Add New Dataset
             </Button>
             <input
               type="file"
@@ -97,18 +101,34 @@ const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVar
               ref={datasetFileInputRef}
               onChange={handleDatasetFileChange}
             />
-            <Typography variant="body2" sx={{ marginTop: 1, textAlign: 'center' }}>
+          </Grid>
+          <Grid item xs={5}>
+            <Typography variant="body1">
               {datasetFile ? `Selected dataset file: ${datasetFile.name}` : 'No dataset file selected'}
             </Typography>
           </Grid>
+
           <Grid item xs={12}>
+            <TextField
+              value = {targetVariable}
+              label="Target Variable"
+              onChange={(e) => setTargetVariable(e.target.value)}
+              fullWidth
+            />
+            <Divider style={{ margin: '20px 0' }} />
+          </Grid>
+        </Grid>
+        <Typography variant="h5" gutterBottom>Model</Typography>
+        <Grid container spacing={2} alignItems={'center'}>
+          <Grid item xs={7}>
             <Button
+              startIcon={<PostAdd />}
               variant="contained"
               color="primary"
               onClick={() => modelFileInputRef.current.click()}
               fullWidth
             >
-              Choose Model File
+              Add Model
             </Button>
             <input
               type="file"
@@ -117,7 +137,9 @@ const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVar
               ref={modelFileInputRef}
               onChange={handleModelFileChange}
             />
-            <Typography variant="body2" sx={{ marginTop: 1, textAlign: 'center' }}>
+          </Grid>
+          <Grid item xs={5}>
+            <Typography variant="body1">
               {modelFile ? `Selected model file: ${modelFile.name}` : 'No model file selected'}
             </Typography>
           </Grid>
@@ -137,15 +159,15 @@ const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVar
               </Select>
             </FormControl>
           </Grid>
-          <Grid item xs={12}>
-            <TextField
-              label="Target Variable"
-              onChange={(e) => setTargetVariable(e.target.value)}
-              fullWidth
-            />
-          </Grid>
-          <Grid item xs={12} sx={{ textAlign: 'center' }}>
-            <Button variant="contained" color="primary" onClick={handleUploadFiles}>
+
+          <Grid item xs={12} sx={{ textAlign: 'center', marginTop: '20px' }}>
+            <Button 
+              size='large'
+              startIcon={<Upload />}
+              variant="contained" 
+              color="primary" 
+              onClick={handleUploadFiles}
+            >
               Upload Files
             </Button>
           </Grid>

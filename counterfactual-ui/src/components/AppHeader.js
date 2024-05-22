@@ -1,37 +1,39 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
 import IconButton from '@mui/material/IconButton';
 import MenuIcon from '@mui/icons-material/Menu';
-import SettingsIcon from '@mui/icons-material/Settings';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import FileOpenIcon from '@mui/icons-material/FileOpen';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 import Drawer from '@mui/material/Drawer';
 import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
-import Divider from '@mui/material/Divider';
-import Box from '@mui/material/Box';
-import Menu from '@mui/material/Menu';
-import MenuItem from '@mui/material/MenuItem';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
-import Grid from '@mui/material/Grid';
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
 import counterfactuals from '../data/counterfactuals';
+import { useNavigate } from 'react-router-dom';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import Slide from '@mui/material/Slide';
+import { Box, Button, Typography, Grid, Select, MenuItem, FormControl, InputLabel, Divider, DialogTitle } from '@mui/material';
 
-const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, newInputFeatures }) => {
+const Transition = React.forwardRef(function Transition(props, ref) {
+  return <Slide direction="up" ref={ref} {...props} />;
+});
+
+
+const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, newInputFeatures, setDatasetName, datasetName, setModelName, modelName, setTargetVariable, targetVariable}) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
-  const fileInputRef = useRef(null);
   const [inputFeatures, setInputFeatures] = useState([]);
   const [showFeaturesForm, setShowFeaturesForm] = useState(false);
-  const [targetVariable, setTargetVariable] = useState('');
-  const [file, setFile] = useState(null);
-  const [showUploadForm, setShowUploadForm] = useState(false);
-
+  const [openSelect, setOpenSelect] = useState(false);
+  const navigate = useNavigate();
+  const [datasets, setDatasets] = useState([]);
+  const [models, setModels] = useState([]);
+  const [modelType, setModelType] = useState('');
 
   useEffect(() => {
     setInputFeatures(newInputFeatures);
@@ -49,48 +51,65 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, new
     setDrawerOpen(false);
   };
 
-  const handleMenuOpen = (event) => {
-    setMenuAnchorEl(event.currentTarget);
-  };
+  const handleDatasetNameChange = (event) => {
+    setDatasetName(event.target.value);
+    const foundDataset = datasets.find((dataset) => dataset.title === event.target.value);
 
-  const handleMenuClose = () => {
-    setMenuAnchorEl(null);
-  };
-
-  const handleFileChange = (event) => {
-    setFile(event.target.files[0]);
-  };
-
-  const handleUploadDataset = () => {
-    if (!file || !targetVariable) {
-      alert('Please select a file and specify the target variable');
-      return;
+    if (foundDataset) {
+      console.log('Dataset selected:', foundDataset.title);
+      setTargetVariable(foundDataset.target);
+    } else {
+      console.log('No dataset found with that name');
     }
-
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('target', targetVariable);
-
-    fetch('http://localhost:8000/uploadDataset/', {
-      method: 'POST',
-      body: formData
-    })
-      .then(response => response.json())
-      .then(data => {
-        // Handle the server response
-        console.log(data);
-        // Assuming data.features is an array of feature objects returned from the server
-        setInputFeatures(data.features);
-        onUploadFeatures(data.features);
-        setShowFeaturesForm(true);
-      })
-      .catch(error => {
-        // Handle any errors
-        console.error(error);
-      });
-
-    handleMenuClose();
   };
+
+  const handleModelNameChange = (event) => {
+    setModelName(event.target.value);
+    const foundModel = models.find((model) => model.title === event.target.value);
+
+    if (foundModel) {
+      console.log('Model selected:', foundModel.title);
+      setModelType(foundModel.type);
+    } else {
+      console.log('No model found with that name');
+    }
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/datasets/');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        console.log("Datasets found:", data)
+        setDatasets(data.datasets);
+      } catch (error) {
+        console.error('Error fetching loaded datasets:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('http://localhost:8000/models/');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        console.log("Model found:", data)
+        setModels(data.models);
+      } catch (error) {
+        console.error('Error fetching loaded models:', error);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const renderInputFeaturesForm = () => {
     if (inputFeatures.length === 0) {
@@ -185,12 +204,97 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, new
           <Typography variant="h6" style={{ flexGrow: 1, fontFamily: 'Pacifico, cursive' }}>
             Select Counterfactual
           </Typography>
-          <IconButton color="inherit" onClick={handleMenuOpen}>
-            <SettingsIcon />
-          </IconButton>
-          <IconButton color="inherit">
-            <AccountCircleIcon />
-          </IconButton>
+          
+            <Button
+              variant='contained'
+              onClick={() => setOpenSelect(true)}
+              startIcon={<FileOpenIcon />}
+              style={{ marginRight: '10px' }}
+            >
+              Select
+            </Button>
+            <Dialog
+              fullWidth
+              maxWidth="md"
+              open={openSelect}
+              TransitionComponent={Transition}
+              keepMounted
+              onClose={() => setOpenSelect(false)}
+              aria-describedby="dialog-slide-select"
+              PaperProps={{
+                component: 'form',
+                onSubmit: (event) => {
+                  console.log('Dataset selected:', datasetName);
+                  console.log('Model selected:', modelName);
+                  setOpenSelect(false);
+                },
+              }}
+            >
+              <DialogTitle fontSize={'30px'}>{"Select your dataset and model"}</DialogTitle>
+              <Divider />
+              <DialogContent>
+                <Grid container spacing={4} alignItems="center">
+                  <Grid item xs={7}>
+                    <FormControl fullWidth>
+                      <InputLabel id="upload-dataset-label">Dataset</InputLabel>
+                      <Select
+                        labelId="upload-dataset-label"
+                        id="select-dataset"
+                        value={datasetName}
+                        label="Dataset"
+                        onChange={handleDatasetNameChange}
+                      >
+                        {datasets.map((dataset) => (
+                          <MenuItem key={dataset.title} value={dataset.title}>{dataset.title}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={5}>
+                    <Typography variant="body">
+                      {targetVariable ? `Target variable: ${targetVariable}` : 'No dataset selected'}
+                    </Typography>
+                  </Grid>
+                  <Grid item xs={7}>
+                    <FormControl fullWidth>
+                      <InputLabel id="select-model-label">Model</InputLabel>
+                      <Select
+                        labelId="select-model-label"
+                        id="select-model"
+                        value={modelName}
+                        label="Model"
+                        onChange={handleModelNameChange}
+                      >
+                        {models.map((model) => (
+                          <MenuItem key={model.title} value={model.title}>{model.title}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={5}>
+                    <Typography variant="body">
+                      {modelType ? `Model type: ${modelType}` : 'No model selected'}
+                    </Typography>
+                  </Grid>
+                </Grid>
+                
+              </DialogContent>
+              <DialogActions>
+                <Button 
+                  variant="contained"
+                  onClick={() => setOpenSelect(false)}>
+                    Confirm
+                </Button>
+              </DialogActions>
+            </Dialog>
+            <Button
+              variant='contained'
+              onClick={() => navigate('/upload') }
+              startIcon={<UploadFileIcon />}
+            >
+              Upload
+            </Button>
+          
         </Toolbar>
       </AppBar>
       <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)}>
@@ -218,46 +322,7 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, new
           </List>
         </Box>
       </Drawer>
-      <Menu
-        anchorEl={menuAnchorEl}
-        open={Boolean(menuAnchorEl)}
-        onClose={handleMenuClose}
-      >
-        <MenuItem onClick={() => {
-          setShowUploadForm(true);
-          handleMenuClose();
-          setTimeout(() => {
-            fileInputRef.current.click();
-          }, 0);
-        }}>
-          Upload Dataset
-        </MenuItem>
-      </Menu>
-      <input
-        type="file"
-        accept=".csv,.xlsx"
-        style={{ display: 'none' }}
-        ref={fileInputRef}
-        onChange={handleFileChange}
-      />
-      {showUploadForm && (
-        <Box sx={{ padding: 2 }}>
-          <Typography variant="h6" gutterBottom>Upload Dataset</Typography>
-          <TextField
-            label="Target Variable"
-            value={targetVariable}
-            onChange={(e) => setTargetVariable(e.target.value)}
-            fullWidth
-            sx={{ marginBottom: 2 }}
-          />
-          <Typography variant="body2" sx={{ marginTop: 2 }}>
-            {file ? `Selected file: ${file.name}` : 'No file selected'}
-          </Typography>
-          <Button variant="contained" color="primary" onClick={handleUploadDataset} sx={{ marginTop: 2 }}>
-            Upload Dataset
-          </Button>
-        </Box>
-      )}
+      
       {showFeaturesForm ? renderInputFeaturesForm() : (
         <Box sx={{ textAlign: 'center', marginTop: 2 }}>
           <IconButton onClick={() => setShowFeaturesForm(true)}>

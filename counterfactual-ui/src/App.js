@@ -34,8 +34,8 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/upload" />} />
-        <Route path="/upload" element={<UploadPage setDatasetName={setDatasetName} setModelName={setModelName} setTargetVariable={setTargetVariable} targetVariable={targetVariable} />} />
+        <Route path="/" element={<Navigate to="/app" />} />
+        <Route path="/upload" element={<UploadPage setDatasetName={setDatasetName} datasetName={datasetName} setModelName={setModelName} modelName={modelName} setTargetVariable={setTargetVariable} targetVariable={targetVariable} />} />
         <Route 
           path="/app" 
           element={
@@ -45,7 +45,12 @@ const App = () => {
                 onUploadFeatures={handleUploadFeatures} 
                 onToggleLock={handleToggleLock}
                 newInputFeatures={inputFeatures}
+                setTargetVariable={setTargetVariable}
                 targetVariable={targetVariable}
+                setDatasetName={setDatasetName}
+                datasetName={datasetName}
+                setModelName={setModelName}
+                modelName={modelName}
               />
               <Counterfactual 
                 counterfactual={selectedCounterfactual} 
