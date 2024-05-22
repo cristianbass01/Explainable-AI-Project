@@ -9,7 +9,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
 
   useEffect(() => {
     console.log("Counterfactual updated:", counterfactual);
-    setSelectedCounterfactual({ ...counterfactual,hiddenFeatures: [], features: inputFeatures });
+    setSelectedCounterfactual({ ...counterfactual, hiddenFeatures: [], features: inputFeatures });
   }, [counterfactual, inputFeatures]);
 
   // useEffect(() => {
@@ -117,21 +117,30 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
 
         // Extract the feature name, counterfactual, value, and lock status
         featureDict['name'] = feature.name;
-        featureDict['counterfactual'] = item[feature.name];
         featureDict['value'] = feature.value;
+        featureDict['counterfactual'] = item[feature.name];
+        //Change true and false to 1 and 0 in feature value
+        if (featureDict['value'] === true || featureDict['value'] === 'true') {
+          featureDict['value'] = "1";
+        }
+        else if (featureDict['value'] === false || featureDict['value'] === 'false') {
+          featureDict['value'] = "0"
+        }
         featureDict['locked'] = false;
-        featureDict['changed'] = feature.value !== item[feature.name];
+        featureDict['changed'] = String(featureDict['value']) !== String(featureDict['counterfactual']);
         if (featureDict['changed']) {
           changes.push(feature.name);
         }
-        if (feature.isHidden) {
+        if (feature.isHidden || !featureDict['changed']) {
           hiddenFeatures.push(featureDict);
         }
         else {
           CounterfactualFeatures.push(featureDict);
         }
-      }
 
+        console.log("Feature dict:", featureDict);
+
+      }
       // Add to a counterFactual to return
       const counterFactual = {}
       counterFactual['inputProbability'] = inputProbability;
@@ -178,6 +187,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           modelName: "model",
           dataset: "processed_data",
           type: 'DICE',
+          featuresToVary: features.filter(feature => !feature.locked).map(feature => feature.name),
         }),
       });
 
