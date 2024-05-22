@@ -48,7 +48,7 @@ const App = () => {
                 targetVariable={targetVariable}
               />
               <Counterfactual 
-                counterfactual={selectedCounterfactual} 
+                counterfactual={null} 
                 inputFeatures={inputFeatures} 
                 onToggleLock={handleToggleLock}
                 datasetName={datasetName}

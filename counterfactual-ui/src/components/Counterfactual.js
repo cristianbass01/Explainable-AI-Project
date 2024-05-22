@@ -9,12 +9,12 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
 
   useEffect(() => {
     console.log("Counterfactual updated:", counterfactual);
-    setSelectedCounterfactual(counterfactual);
-  }, [counterfactual]);
+    setSelectedCounterfactual({ ...counterfactual,hiddenFeatures: [], features: inputFeatures });
+  }, [counterfactual, inputFeatures]);
 
-  useEffect(() => {
-    setFeatures(inputFeatures);
-  }, [inputFeatures]);
+  // useEffect(() => {
+  //   setFeatures(inputFeatures);
+  // }, [inputFeatures]);
 
 
   const transformDatasetToInputFeatures = (dataset) => {
@@ -63,7 +63,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
   }, [datasetName, setInputFeatures]);
 
   if (!selectedCounterfactual) {
-    return null;  // or some fallback UI
+    return <div>Loading...</div>;
   }
 
   const hideFeature = (index) => {
