@@ -71,7 +71,7 @@ def gen_counterfactual(request):
         counterfactuals = cf_binner.bin(counterfactuals, query.squeeze())
 
         res = {'counterfactuals': counterfactuals.to_dict(orient='records'),
-                            'original': binned_query.to_dict(orient='records')}
+                            'original': binned_query.to_dict(orient='records')[0]}
         return JsonResponse(res)
     except ValueError as e:
         return HttpResponse(str(e), status=400)
