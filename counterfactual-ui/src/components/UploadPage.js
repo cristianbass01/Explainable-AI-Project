@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Button, TextField, Typography, Grid, Paper, Select, MenuItem, FormControl, InputLabel, Divider } from '@mui/material';
 import {PostAdd, NoteAdd, Upload} from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom';
@@ -10,6 +10,12 @@ const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVar
   const [modelFile, setModelFile] = useState(null);
   const [modelType, setModelType] = useState('');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    setDatasetName('');
+    setModelName('');
+    setTargetVariable('');
+  }, [setDatasetName, setModelName, setTargetVariable]);
 
   const handleDatasetFileChange = (event) => {
     const file = event.target.files[0];
@@ -79,10 +85,10 @@ const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVar
 
   return (
     <Box sx={{ padding: 4, display: 'flex', justifyContent: 'center' }}>
-      <Paper elevation={3} sx={{ padding: 4, width: '100%', maxWidth: 600 }}>
-        <Typography variant="h4" gutterBottom>Upload Files</Typography>
+      <Paper elevation={3} sx={{ padding: 4, width: '100%', maxWidth: 800 }}>
+        <Typography variant="h3">Upload Files</Typography>
         <Divider style={{ margin: '20px 0' }} />
-        <Typography variant="h5" gutterBottom>Dataset</Typography>
+        <Typography variant="h4">Dataset</Typography>
         <Grid container spacing={2} alignItems={'center'}>
           <Grid item xs={7}>
             <Button
@@ -103,7 +109,7 @@ const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVar
             />
           </Grid>
           <Grid item xs={5}>
-            <Typography variant="body1">
+            <Typography variant="h5">
               {datasetFile ? `Selected dataset file: ${datasetFile.name}` : 'No dataset file selected'}
             </Typography>
           </Grid>
@@ -118,7 +124,7 @@ const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVar
             <Divider style={{ margin: '20px 0' }} />
           </Grid>
         </Grid>
-        <Typography variant="h5" gutterBottom>Model</Typography>
+        <Typography variant="h4" gutterBottom>Model</Typography>
         <Grid container spacing={2} alignItems={'center'}>
           <Grid item xs={7}>
             <Button
@@ -128,7 +134,7 @@ const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVar
               onClick={() => modelFileInputRef.current.click()}
               fullWidth
             >
-              Add Model
+              Add New Model
             </Button>
             <input
               type="file"
@@ -139,7 +145,7 @@ const UploadPage = ({ setDatasetName, setModelName, setTargetVariable, targetVar
             />
           </Grid>
           <Grid item xs={5}>
-            <Typography variant="body1">
+            <Typography variant="h5">
               {modelFile ? `Selected model file: ${modelFile.name}` : 'No model file selected'}
             </Typography>
           </Grid>
