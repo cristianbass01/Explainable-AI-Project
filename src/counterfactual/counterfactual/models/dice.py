@@ -48,20 +48,35 @@ class DiceGenerator(models.Model):
         cf['diabetes'] = diabetes
         return cf
     
+    def add_change_flags(self, cf: pd.DataFrame, query_instance: pd.DataFrame):
+        cf_res = []
+        for _, row in cf.iterrows():
+            row_dict = {}
+            for col in cf.columns:
+                changed = row[col] != query_instance[col].values[0]
+                row_dict[col] = {
+                    "value": row[col],
+                    "changed": bool(changed)
+                }
+            cf_res.append(row_dict)
+        
+        return cf_res
+    
     def get_counterfactuals(self, query_instance: pd.DataFrame = None, features_to_vary: str = "all", count: int = 1) -> str:
         cfs = self.gen.generate_counterfactuals(query_instance, total_CFs=count, desired_class="opposite", features_to_vary=features_to_vary)
         cf = cfs.cf_examples_list[0].final_cfs_df
-        binned_query = self.gb_binner.bin_with_values(query_instance)
 
         if self.to_add_probabilities:
             original_prob = np.max(self.model.predict_proba(query_instance)[0])
-            binned_query['probability'] = original_prob
-            binned_query[self.target_name] = self.model.predict(query_instance)[0]
+            query_instance[self.target_name] = self.model.predict(query_instance)[0]
+            query_instance['probability'] = original_prob
             cf = self.add_probabilities(cf)
 
+        binned_query = self.gb_binner.bin_with_values(query_instance)
         cf = self.cf_binner.bin(cf, query_instance.squeeze())
+        cf_with_flags = self.add_change_flags(cf, query_instance)
 
-        json_str = json.dumps({'counterfactuals': cf.to_dict(orient='records'), 'original': binned_query.to_dict(orient='records')})
+        json_str = json.dumps({'counterfactuals': cf_with_flags, 'original': binned_query.to_dict(orient='records')})
 
         return json_str
 
