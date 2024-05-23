@@ -5,7 +5,7 @@ import pickle
 import pandas as pd
 from typing import IO
 
-BASE_PATH = "./src/counterfactual/counterfactual/uploads"
+BASE_PATH = "./src/backend/counterfactual/counterfactual/uploads"
 
 class FileManager:
     """
