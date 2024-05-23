@@ -38,30 +38,30 @@ class DiceGenerator(models.Model):
         
         self.gen = dice_ml.Dice(d,m)
     
-    def add_probabilities(self, cf, cf_dict):
+    def add_probabilities(self, cf):
+        diabetes = cf['diabetes']
+
         cf.drop(columns=[self.target_name], inplace=True)
         res = self.model.predict_proba(cf)
-        for idx, el in enumerate(cf_dict):
-            el['probability'] = np.max(res[idx])
+        cf['probability'] = np.max(res, axis=1)
 
-        return cf_dict
+        cf['diabetes'] = diabetes
+        return cf
     
     def get_counterfactuals(self, query_instance: pd.DataFrame = None, features_to_vary: str = "all", count: int = 1) -> str:
         cfs = self.gen.generate_counterfactuals(query_instance, total_CFs=count, desired_class="opposite", features_to_vary=features_to_vary)
-        cf_orig = cfs.cf_examples_list[0].final_cfs_df
-        cf = self.cf_binner.bin(cf_orig, query_instance.squeeze())
+        cf = cfs.cf_examples_list[0].final_cfs_df
         binned_query = self.gb_binner.bin_with_values(query_instance)
-
-        binned_dict = binned_query.to_dict(orient='records')[0]
-        cf_dict = cf.to_dict(orient='records')
 
         if self.to_add_probabilities:
             original_prob = np.max(self.model.predict_proba(query_instance)[0])
-            binned_dict['probability'] = original_prob
-            binned_dict[self.target_name] = self.model.predict(query_instance)[0]
-            cf_dict = self.add_probabilities(cf_orig, cf_dict)
+            binned_query['probability'] = original_prob
+            binned_query[self.target_name] = self.model.predict(query_instance)[0]
+            cf = self.add_probabilities(cf)
 
-        json_str = json.dumps({'counterfactuals': cf_dict, 'original': binned_dict}, default=int)
+        cf = self.cf_binner.bin(cf, query_instance.squeeze())
+
+        json_str = json.dumps({'counterfactuals': cf.to_dict(orient='records'), 'original': binned_query.to_dict(orient='records')})
 
         return json_str
 
