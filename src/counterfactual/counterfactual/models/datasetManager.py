@@ -47,11 +47,17 @@ class Dataset:
     def __init__(self, dataset, target) -> None:
         self.dataset = dataset
         self.target = target
-        self.continuous_features = dataset.select_dtypes(include=['float64', "int64"]).columns.tolist()
-        self.continuous_features = [col for col in self.continuous_features if col != target]
+        self.numeric = dataset.select_dtypes(include=['float64', 'int64']).columns.tolist()
+        self.numeric = [col for col in self.numeric if col != target]
+        self.continuous_features = [col for col in dataset.columns 
+                                   if dataset[col].nunique() > 10 and col != target]
+
 
     def get_dataset(self):
         return self.dataset
+
+    def get_numeric_feat(self):
+        return self.numeric
 
     def get_con_feat(self):
         return self.continuous_features

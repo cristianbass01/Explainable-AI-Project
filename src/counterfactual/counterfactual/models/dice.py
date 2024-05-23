@@ -12,16 +12,16 @@ class DiceGenerator(models.Model):
     def __init__(self, model,dataset):
         super().__init__()
         target_name = dataset.get_target()
-        continuous_features = dataset.get_con_feat()
+        numeric_feats = dataset.get_numeric_feat()
 
         self.gb_binner = GlobalBinner(dataset)
         self.cf_binner = CounterfactualBinner(dataset)
-
         dataset = dataset.get_dataset()
         target = dataset[target_name]
         self.target_name = target_name
         d = dice_ml.Data(dataframe=dataset,
-                         continuous_features=continuous_features,
+                         # TODO: is this correct?
+                         continuous_features=numeric_feats,
                          outcome_name=target_name)
 
 

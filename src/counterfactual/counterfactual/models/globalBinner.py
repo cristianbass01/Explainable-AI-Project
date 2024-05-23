@@ -10,10 +10,6 @@ class GlobalBinner:
         self.columns = dataset.get_con_feat()
         self.bin_edges = self._compute_bin_edges()
 
-    def _get_numeric_columns(self) -> List[str]:
-        """Identifies numeric columns in the data."""
-        return self.data.select_dtypes(include=[np.number]).columns.tolist()
-
     def _compute_bin_edges(self) -> pd.DataFrame:
         """Calculates the 33rd and 67th percentiles for binning."""
         quantiles = self.data[self.columns].quantile([0.33, 0.67])
