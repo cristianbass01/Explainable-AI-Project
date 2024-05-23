@@ -3,7 +3,7 @@ import { Card, CardContent, Typography, Divider } from '@mui/material';
 import FeatureList from './FeatureList';
 import HiddenFeatureList from './HiddenFeatureList';
 
-const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable }) => {
+const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable, generateCounterfactualRef }) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
   const [features, setFeatures] = useState(inputFeatures);
 
@@ -11,11 +11,6 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     console.log("Counterfactual updated:", counterfactual);
     setSelectedCounterfactual({ ...counterfactual, hiddenFeatures: [], features: inputFeatures });
   }, [counterfactual, inputFeatures]);
-
-  // useEffect(() => {
-  //   setFeatures(inputFeatures);
-  // }, [inputFeatures]);
-
 
   const transformDatasetToInputFeatures = (dataset) => {
     return Object.keys(dataset.columns).map((column) => ({
@@ -45,6 +40,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           return;
         }
         console.log("Dataset found:", dataset);
+        // eslint-disable-next-line
         inputFeatures = transformDatasetToInputFeatures(dataset);
         const transformedFeatures = transformDatasetToInputFeatures(dataset);
         console.log("Transformed features:", transformedFeatures);
@@ -212,6 +208,9 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     }
   };
 
+  generateCounterfactualRef.current = generateCounterfactual;
+
+
   return (
     <Card style={{ margin: '20px', backgroundColor: '#f0f0f0' }}>
       <CardContent>
@@ -223,9 +222,6 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           <div>
             <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Counterfactual</Typography>
             <Typography variant="h6" style={{ color: 'red', fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual.predictionProbability}% Diabetic</Typography>
-          </div>
-          <div>
-            <button style={{ fontFamily: 'Pacifico, cursive', backgroundColor: 'lightblue', padding: '10px', borderRadius: '5px', border: '1' }} onClick={generateCounterfactual}>Generate Counterfactual</button>
           </div>
         </div>
         <Divider />

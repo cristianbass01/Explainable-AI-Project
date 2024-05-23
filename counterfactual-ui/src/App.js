@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import AppHeader from './components/AppHeader';
 import Counterfactual from './components/Counterfactual';
@@ -11,6 +11,7 @@ const App = () => {
   const [datasetName, setDatasetName] = useState('');
   const [modelName, setModelName] = useState('');
   const [targetVariable, setTargetVariable] = useState('');
+  const generateCounterfactualRef = useRef();
 
   const handleSelectCounterfactual = (counterfactual) => {
     setSelectedCounterfactual(counterfactual);
@@ -51,6 +52,7 @@ const App = () => {
                 datasetName={datasetName}
                 setModelName={setModelName}
                 modelName={modelName}
+                generateCounterfactualRef={generateCounterfactualRef}
               />
               <Counterfactual 
                 counterfactual={null} 
@@ -61,6 +63,7 @@ const App = () => {
                 onUploadFeatures={handleUploadFeatures}
                 modelName={modelName}
                 targetVariable={targetVariable}
+                generateCounterfactualRef={generateCounterfactualRef}
               />
             </>
           } 

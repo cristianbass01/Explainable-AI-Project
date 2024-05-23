@@ -6,13 +6,8 @@ import MenuIcon from '@mui/icons-material/Menu';
 import FileOpenIcon from '@mui/icons-material/FileOpen';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
 import Drawer from '@mui/material/Drawer';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
-import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
-import counterfactuals from '../data/counterfactuals';
 import { useNavigate } from 'react-router-dom';
 import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
@@ -24,8 +19,7 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-
-const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, newInputFeatures, setDatasetName, datasetName, setModelName, modelName, setTargetVariable, targetVariable}) => {
+const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatasetName, datasetName, setModelName, modelName, setTargetVariable, targetVariable, generateCounterfactualRef }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [inputFeatures, setInputFeatures] = useState([]);
   const [showFeaturesForm, setShowFeaturesForm] = useState(false);
@@ -44,11 +38,6 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, new
       return;
     }
     setDrawerOpen(open);
-  };
-
-  const handleSelectCounterfactual = (counterfactual) => {
-    onSelectCounterfactual(counterfactual);
-    setDrawerOpen(false);
   };
 
   const handleDatasetNameChange = (event) => {
@@ -118,7 +107,7 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, new
     }
 
     return (
-      <Box sx={{ padding: 2, maxHeight: 400, overflowY: 'auto' }}>
+      <Box sx={{ padding: 2, maxHeight: "100%", overflowY: 'auto' }}>
         <Typography variant="h6" gutterBottom>Input Features</Typography>
         <form>
           {inputFeatures.map((feature, index) => (
@@ -184,11 +173,16 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, new
             </Grid>
           ))}
         </form>
-        <Box sx={{ textAlign: 'center' }}>
-          <IconButton onClick={() => setShowFeaturesForm(false)}>
-            <ArrowDropUpIcon />
-          </IconButton>
-          <Typography variant="caption">Hide Form</Typography>
+        <Box sx={{ textAlign: 'right' }}>
+          <Button
+            variant='contained'
+            onClick={() => {
+              generateCounterfactualRef.current();
+              setDrawerOpen(false);
+            }}
+          >
+            Generate Counterfactual
+          </Button>
         </Box>
       </Box>
     );
@@ -198,139 +192,118 @@ const AppHeader = ({ onSelectCounterfactual, onUploadFeatures, onToggleLock, new
     <>
       <AppBar position="static" style={{ background: '#f5f5f5', color: '#000' }}>
         <Toolbar>
-          <IconButton edge="start" color="inherit" aria-label="menu" onClick={toggleDrawer(true)}>
-            <MenuIcon />
-          </IconButton>
-          <Typography variant="h6" style={{ flexGrow: 1, fontFamily: 'Pacifico, cursive' }}>
-            Select Counterfactual
-          </Typography>
-          
-            <Button
-              variant='contained'
-              onClick={() => setOpenSelect(true)}
-              startIcon={<FileOpenIcon />}
-              style={{ marginRight: '10px' }}
-            >
-              Select
-            </Button>
-            <Dialog
-              fullWidth
-              maxWidth="md"
-              open={openSelect}
-              TransitionComponent={Transition}
-              keepMounted
-              onClose={() => setOpenSelect(false)}
-              aria-describedby="dialog-slide-select"
-              PaperProps={{
-                component: 'form',
-                onSubmit: (event) => {
-                  console.log('Dataset selected:', datasetName);
-                  console.log('Model selected:', modelName);
-                  setOpenSelect(false);
-                },
-              }}
-            >
-              <DialogTitle fontSize={'30px'}>{"Select your dataset and model"}</DialogTitle>
-              <Divider />
-              <DialogContent>
-                <Grid container spacing={4} alignItems="center">
-                  <Grid item xs={7}>
-                    <FormControl fullWidth>
-                      <InputLabel id="upload-dataset-label">Dataset</InputLabel>
-                      <Select
-                        labelId="upload-dataset-label"
-                        id="select-dataset"
-                        value={datasetName}
-                        label="Dataset"
-                        onChange={handleDatasetNameChange}
-                      >
-                        {datasets.map((dataset) => (
-                          <MenuItem key={dataset.title} value={dataset.title}>{dataset.title}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item>
+              <IconButton edge="start" color="inherit" aria-label="menu" onClick={toggleDrawer(true)}>
+                <MenuIcon />
+              </IconButton>
+            </Grid>
+            <Grid item xs>
+              <Typography variant="h6" style={{ flexGrow: 1, fontFamily: 'Pacifico, cursive' }}>
+                Input Features
+              </Typography>
+            </Grid>
+            <Grid item>
+              <Button
+                variant='contained'
+                onClick={() => setOpenSelect(true)}
+                startIcon={<FileOpenIcon />}
+                style={{ marginRight: '10px' }}
+              >
+                Select
+              </Button>
+              <Dialog
+                fullWidth
+                maxWidth="md"
+                open={openSelect}
+                TransitionComponent={Transition}
+                keepMounted
+                onClose={() => setOpenSelect(false)}
+                aria-describedby="dialog-slide-select"
+                PaperProps={{
+                  component: 'form',
+                  onSubmit: (event) => {
+                    console.log('Dataset selected:', datasetName);
+                    console.log('Model selected:', modelName);
+                    setOpenSelect(false);
+                  },
+                }}
+              >
+                <DialogTitle fontSize={'30px'}>{"Select your dataset and model"}</DialogTitle>
+                <Divider />
+                <DialogContent>
+                  <Grid container spacing={4} alignItems="center">
+                    <Grid item xs={7}>
+                      <FormControl fullWidth>
+                        <InputLabel id="upload-dataset-label">Dataset</InputLabel>
+                        <Select
+                          labelId="upload-dataset-label"
+                          id="select-dataset"
+                          value={datasetName}
+                          label="Dataset"
+                          onChange={handleDatasetNameChange}
+                        >
+                          {datasets.map((dataset) => (
+                            <MenuItem key={dataset.title} value={dataset.title}>{dataset.title}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={5}>
+                      <Typography variant="body">
+                        {targetVariable ? `Target variable: ${targetVariable}` : 'No dataset selected'}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={7}>
+                      <FormControl fullWidth>
+                        <InputLabel id="select-model-label">Model</InputLabel>
+                        <Select
+                          labelId="select-model-label"
+                          id="select-model"
+                          value={modelName}
+                          label="Model"
+                          onChange={handleModelNameChange}
+                        >
+                          {models.map((model) => (
+                            <MenuItem key={model.title} value={model.title}>{model.title}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={5}>
+                      <Typography variant="body">
+                        {modelType ? `Model type: ${modelType}` : 'No model selected'}
+                      </Typography>
+                    </Grid>
                   </Grid>
-                  <Grid item xs={5}>
-                    <Typography variant="body">
-                      {targetVariable ? `Target variable: ${targetVariable}` : 'No dataset selected'}
-                    </Typography>
-                  </Grid>
-                  <Grid item xs={7}>
-                    <FormControl fullWidth>
-                      <InputLabel id="select-model-label">Model</InputLabel>
-                      <Select
-                        labelId="select-model-label"
-                        id="select-model"
-                        value={modelName}
-                        label="Model"
-                        onChange={handleModelNameChange}
-                      >
-                        {models.map((model) => (
-                          <MenuItem key={model.title} value={model.title}>{model.title}</MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={5}>
-                    <Typography variant="body">
-                      {modelType ? `Model type: ${modelType}` : 'No model selected'}
-                    </Typography>
-                  </Grid>
-                </Grid>
-                
-              </DialogContent>
-              <DialogActions>
-                <Button 
-                  variant="contained"
-                  onClick={() => setOpenSelect(false)}>
+                </DialogContent>
+                <DialogActions>
+                  <Button
+                    variant="contained"
+                    onClick={() => setOpenSelect(false)}>
                     Confirm
-                </Button>
-              </DialogActions>
-            </Dialog>
-            <Button
-              variant='contained'
-              onClick={() => navigate('/upload') }
-              startIcon={<UploadFileIcon />}
-            >
-              Upload
-            </Button>
-          
+                  </Button>
+                </DialogActions>
+              </Dialog>
+              <Button
+                variant='contained'
+                onClick={() => navigate('/upload')}
+                startIcon={<UploadFileIcon />}
+              >
+                Upload
+              </Button>
+            </Grid>
+          </Grid>
         </Toolbar>
       </AppBar>
       <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)}>
         <Box
-          sx={{ width: 300, padding: 2 }}
+          sx={{ minWidth: 800, padding: 2, maxWidth: "80%" }}
           role="presentation"
-          onClick={toggleDrawer(false)}
-          onKeyDown={toggleDrawer(false)}
         >
-          <Typography variant="h6" gutterBottom>
-            Select Counterfactual
-          </Typography>
-          <List>
-            {counterfactuals.map((counterfactual, index) => (
-              <ListItem button key={index} onClick={() => handleSelectCounterfactual(counterfactual)}>
-                <Box sx={{ width: '100%' }}>
-                  <Typography variant="subtitle1">Counterfactual {index + 1}</Typography>
-                  <Typography variant="body2">Number of changes: {counterfactual.changes.length}</Typography>
-                  <Typography variant="body2">Features changed: {counterfactual.changes.join(', ')}</Typography>
-                  <Typography variant="body2">Prediction probability: {counterfactual.predictionProbability}%</Typography>
-                  {index < counterfactuals.length - 1 && <Divider sx={{ marginY: 1 }} />}
-                </Box>
-              </ListItem>
-            ))}
-          </List>
+          {renderInputFeaturesForm()}
         </Box>
       </Drawer>
-      
-      {showFeaturesForm ? renderInputFeaturesForm() : (
-        <Box sx={{ textAlign: 'center', marginTop: 2 }}>
-          <IconButton onClick={() => setShowFeaturesForm(true)}>
-            <ArrowDropDownIcon />
-          </IconButton>
-          <Typography variant="caption">Change Input</Typography>
-        </Box>
-      )}
     </>
   );
 };
