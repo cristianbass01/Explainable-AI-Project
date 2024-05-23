@@ -2,13 +2,12 @@ from typing import Iterable
 from django.db import models
 from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
-import dice_ml
 from counterfactual.models.fileManager import FileManager
 
 # In memory simulation of db that keeps info on model paths
 modelDB = {
     "adult_income": {
-        "path": dice_ml.utils.helpers.get_adult_income_modelpath(),
+        "path": helpers.get_adult_income_modelpath(),
         "type": "TF2"
     }
 }
