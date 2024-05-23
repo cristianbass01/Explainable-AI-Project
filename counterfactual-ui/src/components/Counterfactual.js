@@ -3,19 +3,13 @@ import { Card, CardContent, Typography, Divider } from '@mui/material';
 import FeatureList from './FeatureList';
 import HiddenFeatureList from './HiddenFeatureList';
 
-const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable }) => {
+const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable, generateCounterfactualRef }) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
   const [features, setFeatures] = useState(inputFeatures);
 
   useEffect(() => {
-    console.log("Counterfactual updated:", counterfactual);
     setSelectedCounterfactual({ ...counterfactual, hiddenFeatures: [], features: inputFeatures });
   }, [counterfactual, inputFeatures]);
-
-  // useEffect(() => {
-  //   setFeatures(inputFeatures);
-  // }, [inputFeatures]);
-
 
   const transformDatasetToInputFeatures = (dataset) => {
     return Object.keys(dataset.columns).map((column) => ({
@@ -27,9 +21,6 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
   };
 
   useEffect(() => {
-    console.log("Dataset name:", datasetName);
-    console.log("Model name:", modelName);
-    console.log("Target variable:", targetVariable);
 
     // fetch the dataset based on the dataset name
     const fetchData = async () => {
@@ -37,17 +28,15 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
         const response = await fetch('http://localhost:8000/datasets/');
         const data = await response.json();
         //find the dataset with the name datasetName
-        console.log(Object.values(data.datasets));
         const dataset = Object.values(data.datasets).find(d => d.title === "processed_data"); //TODO: change to datasetName
 
         if (!dataset) {
           console.error("Dataset not found");
           return;
         }
-        console.log("Dataset found:", dataset);
+        // eslint-disable-next-line
         inputFeatures = transformDatasetToInputFeatures(dataset);
         const transformedFeatures = transformDatasetToInputFeatures(dataset);
-        console.log("Transformed features:", transformedFeatures);
         setFeatures(transformedFeatures);
         //Remove the target variable from the features
         const targetIndex = transformedFeatures.findIndex(feature => feature.name === targetVariable);
@@ -92,10 +81,19 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     }
   };
 
+  const isChanged = (ogFeature, cfFeature) => {
+    if (String(ogFeature) === "true" && (String(cfFeature) === "true" || String(cfFeature) === "1")) {
+      return false;
+    }
+    if (String(ogFeature) === "false" && (String(cfFeature) === "false" || String(cfFeature) === "0")) {
+      return false;
+    }
+    return String(ogFeature) !== String(cfFeature);;
+  }
+
   const parseCounterfactual = (raw_data) => {
 
-    console.log("Parsing counterfactual...");
-    return raw_data.map(item => {
+    return raw_data.counterfactuals.map(item => {
 
       // Initialize the counterfactual features, changes, and hidden features
       const CounterfactualFeatures = [];
@@ -103,8 +101,13 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
       const hiddenFeatures = [];
 
       // Extract the input and prediction probabilities
-      const inputProbability = (item.original_probability * 100).toFixed(2);
-      const predictionProbability = (item.probability * 100).toFixed(2);
+      const originalData = raw_data.original;
+      const predictionProbability = (item.probability * 100).toFixed(1);
+      const inputProbability = (originalData["probability"] * 100).toFixed(1);
+      const inputClass = originalData[targetVariable];
+      const predictedClass = item[targetVariable];
+
+
 
       // Extract the features
       for (let feature of features) {
@@ -115,19 +118,21 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
         // Create a dictionary for each feature
         const featureDict = {};
 
-        // Extract the feature name, counterfactual, value, and lock status
         featureDict['name'] = feature.name;
-        featureDict['value'] = feature.value;
+
+        // Extract the feature name, counterfactual, value, and lock status
+        // Iterate over the original data 
+        for (const key in originalData) {
+          if (originalData.hasOwnProperty(key)) {
+            const value = originalData[key];
+            if (key === featureDict['name']) {
+              featureDict['value'] = value;
+            }
+          }
+        }
         featureDict['counterfactual'] = item[feature.name];
-        //Change true and false to 1 and 0 in feature value
-        if (featureDict['value'] === true || featureDict['value'] === 'true') {
-          featureDict['value'] = "1";
-        }
-        else if (featureDict['value'] === false || featureDict['value'] === 'false') {
-          featureDict['value'] = "0"
-        }
-        featureDict['locked'] = false;
-        featureDict['changed'] = String(featureDict['value']) !== String(featureDict['counterfactual']);
+        featureDict['locked'] = feature.locked;
+        featureDict['changed'] = isChanged(feature.value, featureDict['counterfactual']);
         if (featureDict['changed']) {
           changes.push(feature.name);
         }
@@ -138,8 +143,6 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           CounterfactualFeatures.push(featureDict);
         }
 
-        console.log("Feature dict:", featureDict);
-
       }
       // Add to a counterFactual to return
       const counterFactual = {}
@@ -148,13 +151,14 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
       counterFactual['changes'] = changes;
       counterFactual['features'] = CounterfactualFeatures;
       counterFactual['hiddenFeatures'] = hiddenFeatures;
+      counterFactual["inputClass"] = inputClass;
+      counterFactual["predictedClass"] = predictedClass;
       return counterFactual;
     });
 
   }
 
   const generateCounterfactual = async () => {
-    console.log("Generating counterfactual...");
     try {
       const query = features.reduce((acc, feature) => {
 
@@ -193,16 +197,17 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
 
       const data = await response.json();
 
-      console.log("Generated counterfactual:", data);
-
       // Update the state with the received counterfactual
       if (data) {
-        // setSelectedCounterfactual(data);
         const newCounterFactual = parseCounterfactual(data);
-        console.log("New counterfactual:", newCounterFactual);
         const updatedFeatures = newCounterFactual[0].features;
         const updatedHiddenFeatures = newCounterFactual[0].hiddenFeatures;
-        setSelectedCounterfactual({ ...selectedCounterfactual, features: updatedFeatures, hiddenFeatures: updatedHiddenFeatures });
+        const predictionProbability = newCounterFactual[0].predictionProbability;
+        const inputProbability = newCounterFactual[0].inputProbability;
+        const inputClass = newCounterFactual[0].inputClass;
+        const predictedClass = newCounterFactual[0].predictedClass;
+        console.log(data);
+        setSelectedCounterfactual({ predictedClass: predictedClass, inputClass: inputClass, predictionProbability: predictionProbability, inputProbability: inputProbability, features: updatedFeatures, hiddenFeatures: updatedHiddenFeatures });
 
       } else {
         console.error("Counterfactual not generated:", data);
@@ -212,20 +217,20 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     }
   };
 
+  generateCounterfactualRef.current = generateCounterfactual;
+
+
   return (
     <Card style={{ margin: '20px', backgroundColor: '#f0f0f0' }}>
       <CardContent>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
           <div>
             <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Input</Typography>
-            <Typography variant="h6" style={{ fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual.inputProbability}% Non-Diabetic</Typography>
+            <Typography variant="h6" style={{ fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}</Typography>
           </div>
           <div>
             <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Counterfactual</Typography>
-            <Typography variant="h6" style={{ color: 'red', fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual.predictionProbability}% Diabetic</Typography>
-          </div>
-          <div>
-            <button style={{ fontFamily: 'Pacifico, cursive', backgroundColor: 'lightblue', padding: '10px', borderRadius: '5px', border: '1' }} onClick={generateCounterfactual}>Generate Counterfactual</button>
+            <Typography variant="h6" style={{ color: 'red', fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}</Typography>
           </div>
         </div>
         <Divider />

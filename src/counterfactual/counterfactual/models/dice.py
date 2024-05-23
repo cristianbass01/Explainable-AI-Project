@@ -4,23 +4,44 @@ from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
-import json
+from counterfactual.models.datasetManager import Dataset
+from typing import Tuple
+
+
+PROBABILITY = 'probability'
 
 class DiceGenerator(models.Model):
-    def __init__(self, model,dataset):
+    """
+    A class that generates counterfactual explanations using the Diverse Counterfactuals (DiCE) algorithm.
+
+    Args:
+        model (object): The machine learning model used for generating counterfactuals.
+        dataset (Dataset): The dataset used for generating counterfactuals.
+
+    Attributes:
+        _target_name (str): The name of the target variable.
+        _to_add_probabilities (bool): Indicates whether to add probabilities to the counterfactuals.
+        _model (object): The machine learning model used for generating counterfactuals.
+        _gen (dice_ml.Dice): The DiCE object used for generating counterfactuals.
+
+    Methods:
+        _add_probabilities(cf: pd.DataFrame) -> pd.DataFrame:
+            Adds probabilities of the class to the counterfactuals dataframe.
+        get_counterfactuals(query_instance: pd.DataFrame = None, features_to_vary: str = "all", count: int = 1) -> Tuple[pd.DataFrame, pd.DataFrame]:
+            Generates counterfactual explanations for a given query instance.
+
+    """
+
+    def __init__(self, model: object, dataset: Dataset) -> None:
         super().__init__()
         target_name = dataset.get_target()
-        continuous_features = dataset.get_con_feat()
+        numeric_feats = dataset.get_numeric_feat()
+
         dataset = dataset.get_dataset()
-        target = dataset[target_name]
-        self.target_name = target_name
-        train_dataset, test_dataset, _, _ = train_test_split(dataset,
-                                                             target,
-                                                             test_size=0.2,
-                                                             random_state=0,
-                                                             stratify=target)
-        d = dice_ml.Data(dataframe=train_dataset,
-                         continuous_features=continuous_features,
+        self._target_name = target_name
+        d = dice_ml.Data(dataframe=dataset,
+                         # TODO: is this correct?
+                         continuous_features=numeric_feats,
                          outcome_name=target_name)
 
 
@@ -29,35 +50,56 @@ class DiceGenerator(models.Model):
         if model.get_title() == "adult_income":
             func="ohe-min-max"
 
-        self.to_add_probabilities = (model.get_type() == "sklearn")
-        self.model = model.get_model()
+        self._to_add_probabilities = (model.get_type() == "sklearn")
+        self._model = model.get_model()
 
         m = dice_ml.Model(model = model.get_model(),
                           backend = model.get_type(), func=func)
-
-        self.gen = dice_ml.Dice(d,m)
+        
+        self._gen = dice_ml.Dice(d,m)
     
-    def add_probabilities(self, json_str, original_prob):
-        df = pd.read_json(json_str)
-        df.drop(columns=[self.target_name], inplace=True)
-        res = self.model.predict_proba(df)
-        data = json.loads(json_str)
-        for i, item in enumerate(data):
-            item['probability'] = np.max(res[i])
-            item['original_probability'] =  1 - original_prob
+    def _add_probabilities(self, cf: pd.DataFrame) -> pd.DataFrame:
+        """
+        Adds probabilities of the class to the counterfactuals dataframe.
 
-        json_str = json.dumps(data)
+        Args:
+            cf (pd.DataFrame): The counterfactuals dataframe.
 
-        return json_str
+        Returns:
+            pd.DataFrame: The counterfactuals dataframe with added probabilities.
+        """
+        target_val = cf[self._target_name]
+
+        cf.drop(columns=[self._target_name], inplace=True)
+        res = self._model.predict_proba(cf)
+        cf[PROBABILITY] = np.max(res, axis=1)
+
+        cf[self._target_name] = target_val
+        return cf
     
-    def get_counterfactuals(self, query_instance = None, features_to_vary = "all", count = 1):
-        cfs = self.gen.generate_counterfactuals(query_instance, total_CFs=count, desired_class="opposite", features_to_vary=features_to_vary)
-        json_str = cfs.cf_examples_list[0].final_cfs_df.to_json(orient='records')
+    def get_counterfactuals(self, query_instance: pd.DataFrame = None, features_to_vary: str = 'all', count: int = 1) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """
+        Generates counterfactual explanations for a given query instance.
 
-        if not self.to_add_probabilities:
-            return json_str
+        Args:
+            query_instance (pd.DataFrame, optional): The query instance for which counterfactuals are generated. Defaults to None.
+            features_to_vary (str, optional): Specifies the features to vary during counterfactual generation. Defaults to "all".
+            count (int, optional): The number of counterfactuals to generate. Defaults to 1.
 
-        original_prob = np.max(self.model.predict_proba(query_instance)[0])
-        return self.add_probabilities(json_str, original_prob)
+        Returns:
+            Tuple[pd.DataFrame, pd.DataFrame]: A tuple containing the counterfactuals and the modified query instance.
+        """
+        
+        cfs = self._gen.generate_counterfactuals(query_instance, total_CFs=count, desired_class="opposite", features_to_vary=features_to_vary)
+        counterfactuals = cfs.cf_examples_list[0].final_cfs_df
+
+        if self._to_add_probabilities:
+            original_prob = np.max(self._model.predict_proba(query_instance)[0])
+            query_instance[self._target_name] = self._model.predict(query_instance)[0]
+            query_instance[PROBABILITY] = original_prob
+            counterfactuals = self._add_probabilities(counterfactuals)
+
+        return counterfactuals, query_instance
+
 
     
