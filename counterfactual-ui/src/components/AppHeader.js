@@ -22,7 +22,6 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatasetName, datasetName, setModelName, modelName, setTargetVariable, targetVariable, generateCounterfactualRef }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [inputFeatures, setInputFeatures] = useState([]);
-  const [showFeaturesForm, setShowFeaturesForm] = useState(false);
   const [openSelect, setOpenSelect] = useState(false);
   const [openDatasetAlert, setOpenDatasetAlert] = useState(false);
   const [openModelAlert, setOpenModelAlert] = useState(false);
@@ -42,6 +41,7 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
     }
     setDrawerOpen(open);
   };
+  
 
   const handleDatasetNameChange = (event) => {
     setDatasetName(event.target.value);
@@ -110,42 +110,6 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
       setOpenModelAlert(true);
     } else {
       setOpenSelect(false);
-    }
-  };
-
-  const toggleDrawer = (open) => (event) => {
-    if (event.type === 'keydown' && (event.key === 'Tab' || event.key === 'Shift')) {
-      return;
-    }
-    setDrawerOpen(open);
-  };
-
-  const handleSelectCounterfactual = (counterfactual) => {
-    onSelectCounterfactual(counterfactual);
-    setDrawerOpen(false);
-  };
-
-  const handleDatasetNameChange = (event) => {
-    setDatasetName(event.target.value);
-    const foundDataset = datasets.find((dataset) => dataset.title === event.target.value);
-
-    if (foundDataset) {
-      console.log('Dataset selected:', foundDataset.title);
-      setTargetVariable(foundDataset.target);
-    } else {
-      console.log('No dataset found with that name');
-    }
-  };
-
-  const handleModelNameChange = (event) => {
-    setModelName(event.target.value);
-    const foundModel = models.find((model) => model.title === event.target.value);
-
-    if (foundModel) {
-      console.log('Model selected:', foundModel.title);
-      setModelType(foundModel.type);
-    } else {
-      console.log('No model found with that name');
     }
   };
 
@@ -253,6 +217,14 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
                 Input Features
               </Typography>
             </Grid>
+
+          {datasetName && modelName && (
+            <Box display="flex" justifyContent="center">
+              <Typography variant="h6" style={{ marginRight: '10px' }}>
+                Dataset: {datasetName} | Model: {modelName}
+              </Typography>
+            </Box>
+          )}
             <Grid item>
               <Button
                 variant='contained'
@@ -328,13 +300,34 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
                   </Grid>
                 </DialogContent>
                 <DialogActions>
+                <Button
+                    variant='outlined'
+                    onClick={() => {
+                      setDatasetName('');
+                      setTargetVariable('');
+                      setModelName('');
+                      setModelType('');
+                      setOpenSelect(false)
+                      }}>
+                    Cancel
+                  </Button>
                   <Button
                     variant="contained"
-                    onClick={() => setOpenSelect(false)}>
+                    onClick={handleConfirm}>
                     Confirm
                   </Button>
                 </DialogActions>
               </Dialog>
+              <Snackbar open={openDatasetAlert} autoHideDuration={6000} onClose={() => setOpenDatasetAlert(false)}>
+                <Alert severity="error" onClose={() => setOpenDatasetAlert(false)}>
+                  <Typography variant="body1">Please select a dataset</Typography>
+                </Alert>
+              </Snackbar>
+              <Snackbar open={openModelAlert} autoHideDuration={6000} onClose={() => setOpenModelAlert(false)}>
+                <Alert severity="error" onClose={() => setOpenModelAlert(false)}>
+                  <Typography variant="body1">Please select a model</Typography>
+                </Alert>
+              </Snackbar>
               <Button
                 variant='contained'
                 onClick={() => navigate('/upload')}
