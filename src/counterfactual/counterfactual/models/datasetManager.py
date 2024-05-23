@@ -7,6 +7,7 @@ import dice_ml
 from counterfactual.models.fileManager import FileManager
 import pandas as pd
 from typing import IO, List
+import numpy as np
 
 
 PATH = "path"
@@ -23,26 +24,29 @@ datasetDB = {
         COLUMNS: {
             'age': {'type': 'numeric'},
             'workclass': {'type': 'categorical',
-             'values': ['Private', 'Self-Employed', 'Other/Unknown', 'Government']},
+             'values': ['Government', 'Other/Unknown', 'Private', 'Self-Employed']},
             'education': {'type': 'categorical',
-             'values': ['Bachelors',
-              'Assoc',
-              'Some-college',
-              'School',
+             'values': ['Assoc',
+              'Bachelors',
+              'Doctorate',
               'HS-grad',
               'Masters',
               'Prof-school',
-              'Doctorate']},
+              'School'
+              'Some-college',
+              ]},
             'marital_status': {'type': 'categorical',
-             'values': ['Single', 'Married', 'Divorced', 'Widowed', 'Separated']},
+             'values': ['Divorced', 'Married', 'Separated', 'Single', 'Widowed']},
             'occupation': {'type': 'categorical',
-             'values': ['White-Collar',
-              'Professional',
-              'Service',
+             'values': [
               'Blue-Collar',
               'Other/Unknown',
-              'Sales']},
-            'race': {'type': 'categorical', 'values': ['White', 'Other']},
+              'Professional',
+              'Sales',
+              'Service',
+              'White-Collar'
+              ]},
+            'race': {'type': 'categorical', 'values': ['Other', 'White']},
             'gender': {'type': 'categorical', 'values': ['Female', 'Male']},
             'hours_per_week': {'type': 'numeric'},
             'income': {'type': 'categorical', 'values': [False, True]}
@@ -188,9 +192,9 @@ class DatasetManager:
             dict: A dictionary containing the unique values of the column, or an empty dictionary.
         """
         if sorted(df[col].unique().tolist()) == [0, 1]:
-            return {'values': df[col].map({0: False, 1: True}).unique().tolist()}
+            return {'values': np.sort(df[col].map({0: False, 1: True}).unique()).tolist()}
         elif df[col].nunique() < 12:
-            return {'values': df[col].unique().tolist()}
+            return {'values': np.sort(df[col].unique()).tolist()}
         else:
             return {}
 
