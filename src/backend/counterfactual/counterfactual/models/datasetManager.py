@@ -74,7 +74,12 @@ class Dataset:
         self.numeric = [col for col in self.numeric if col != target]
         self.continuous_features = [col for col in dataset.columns 
                                    if dataset[col].nunique() > 10 and col != target]
+        
+        self.cat_features = [col for col in dataset.columns if col not in self.continuous_features and col != target]
 
+
+    def get_categorical_feat(self) -> List[str]:
+        return self.cat_features
 
     def get_dataset(self) -> str:
         return self.dataset
@@ -82,7 +87,7 @@ class Dataset:
     def get_numeric_feat(self) -> List[str]:
         return self.numeric
 
-    def get_con_feat(self) -> List[str]:
+    def get_continuous_feat(self) -> List[str]:
         return self.continuous_features
     
     def get_target(self) -> str:

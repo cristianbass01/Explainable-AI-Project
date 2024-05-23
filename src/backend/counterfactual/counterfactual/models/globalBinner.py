@@ -22,7 +22,7 @@ class GlobalBinner:
     
     def __init__(self, dataset: Dataset):
         self.data = dataset.get_dataset()
-        self.columns = dataset.get_con_feat()
+        self.columns = dataset.get_continuous_feat()
         self.bin_edges = self._compute_bin_edges()
 
     def _compute_bin_edges(self) -> pd.DataFrame:

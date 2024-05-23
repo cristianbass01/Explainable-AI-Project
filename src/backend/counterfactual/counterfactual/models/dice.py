@@ -35,12 +35,11 @@ class DiceGenerator(models.Model):
     def __init__(self, model: object, dataset: Dataset) -> None:
         super().__init__()
         target_name = dataset.get_target()
-        numeric_feats = dataset.get_numeric_feat()
+        numeric_feats = dataset.get_continuous_feat()
 
         dataset = dataset.get_dataset()
         self._target_name = target_name
         d = dice_ml.Data(dataframe=dataset,
-                         # TODO: is this correct?
                          continuous_features=numeric_feats,
                          outcome_name=target_name)
 

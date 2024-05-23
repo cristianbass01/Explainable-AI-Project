@@ -23,7 +23,7 @@ class CounterfactualBinner:
 
     def __init__(self, dataset: Dataset):
         self.data = dataset.get_dataset()
-        self.columns = dataset.get_con_feat()
+        self.columns = dataset.get_continuous_feat()
         self.data_stats = self._compute_data_stats()
 
     def _compute_data_stats(self) -> pd.DataFrame:
