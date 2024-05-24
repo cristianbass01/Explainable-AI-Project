@@ -7,8 +7,6 @@ const UploadPage = ({ setDatasetName,
                       setModelName, 
                       setTargetVariable, 
                       targetVariable,
-                      setOpenWelcome,
-                      setOpenCounterfactual
                        }) => {
   const datasetFileInputRef = useRef(null);
   const modelFileInputRef = useRef(null);
@@ -82,9 +80,7 @@ const UploadPage = ({ setDatasetName,
       const modelResponse = await fetch('http://localhost:8000/uploadModels/', modelOptions);
       const modelData = await modelResponse;
       console.log(modelData);
-      navigate('/app');
-      setOpenWelcome(false);
-      setOpenCounterfactual(true)
+      navigate('/counterfactual');
   
     } catch (error) {
       console.error(error);
@@ -92,7 +88,7 @@ const UploadPage = ({ setDatasetName,
   };
 
   return (
-    <Box sx={{ minHeight: 'calc(100vh)', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: "#0B2230" }}>
+    <Box sx={{ minHeight: 'calc(100vh - 64px)', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: "#0B2230" }}>
       <Paper elevation={3} sx={{ padding: 4, width: '100%', maxWidth: 900, maxHeight: 700 }}>
         <Typography variant="h3" color='primary'>Upload Files</Typography>
         <Divider style={{ margin: '20px 0' }} />
