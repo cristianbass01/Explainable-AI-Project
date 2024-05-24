@@ -23,7 +23,18 @@ const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatasetName, datasetName, setModelName, modelName, setTargetVariable, targetVariable, generateCounterfactualRef }) => {
+const AppHeader = ({ onUploadFeatures, 
+                      onToggleLock, 
+                      newInputFeatures, 
+                      setDatasetName, 
+                      datasetName, 
+                      setModelName, 
+                      modelName, 
+                      setTargetVariable, 
+                      targetVariable, 
+                      generateCounterfactualRef,
+                      setOpenWelcome,
+                      setOpenCounterfactual }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [inputFeatures, setInputFeatures] = useState([]);
   const [openSelect, setOpenSelect] = useState(false);
@@ -46,7 +57,6 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
     }
     setDrawerOpen(open);
   };
-
 
   const handleDatasetNameChange = (event) => {
     setDatasetName(event.target.value);
@@ -115,9 +125,10 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
       setOpenModelAlert(true);
     } else {
       setOpenSelect(false);
+      setOpenWelcome(false);
+      setOpenCounterfactual(true);
     }
   };
-
 
   const renderInputFeaturesForm = () => {
     if (inputFeatures.length === 0) {
@@ -197,6 +208,7 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
             variant='contained'
             onClick={() => {
               generateCounterfactualRef.current();
+              setOpenCounterfactual(true);
               setDrawerOpen(false);
             }}
           >
@@ -261,7 +273,7 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
                   },
                 }}
               >
-                <DialogTitle fontSize={'30px'}>{"Select your dataset and model"}</DialogTitle>
+                <DialogTitle fontSize={'30px'} color={'primary'}>{"Select your dataset and model"}</DialogTitle>
                 <Divider />
                 <DialogContent>
                   <Grid container spacing={4} alignItems="center">
@@ -282,7 +294,7 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
                       </FormControl>
                     </Grid>
                     <Grid item xs={5}>
-                      <Typography variant="body">
+                      <Typography variant="h6">
                         {targetVariable ? `Target variable: ${targetVariable}` : 'No dataset selected'}
                       </Typography>
                     </Grid>
@@ -303,7 +315,7 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
                       </FormControl>
                     </Grid>
                     <Grid item xs={5}>
-                      <Typography variant="body">
+                      <Typography variant="h6">
                         {modelType ? `Model type: ${modelType}` : 'No model selected'}
                       </Typography>
                     </Grid>

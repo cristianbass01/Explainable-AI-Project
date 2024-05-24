@@ -1,11 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, Typography, Divider } from '@mui/material';
+import { Card, CardContent, Typography, Divider, Alert, Snackbar } from '@mui/material';
 import FeatureList from './FeatureList';
 import HiddenFeatureList from './HiddenFeatureList';
 
 const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable, generateCounterfactualRef }) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
   const [features, setFeatures] = useState(inputFeatures);
+
+  const [openSuccess, setOpenSuccess] = useState(true);
+  const [openWarning, setOpenWarning] = useState(true);
 
   useEffect(() => {
     setSelectedCounterfactual({ ...counterfactual, hiddenFeatures: [], features: inputFeatures });
@@ -21,7 +24,6 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
   };
 
   useEffect(() => {
-
     // fetch the dataset based on the dataset name
     const fetchData = async () => {
       try {
@@ -48,8 +50,8 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     }
 
     fetchData();
-
   }, [datasetName, setInputFeatures]);
+
 
   if (!selectedCounterfactual) {
     return <div>Loading...</div>;
@@ -186,8 +188,8 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
         },
         body: JSON.stringify({
           query: query,
-          modelName: "model",
-          dataset: "processed_data",
+          modelName: modelName,
+          dataset: datasetName,
           type: 'DICE',
           featuresToVary: features.filter(feature => !feature.locked).map(feature => feature.name),
         }),
@@ -219,6 +221,8 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
 
 
   return (
+    <>
+    
     <Card style={{ margin: '20px', backgroundColor: '#f0f0f0' }}>
       <CardContent>
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
@@ -236,6 +240,35 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
         <HiddenFeatureList features={selectedCounterfactual.hiddenFeatures} title="Hidden Features" onShowFeature={showFeature} onLockToggle={(index) => toggleLock(index, true)} />
       </CardContent>
     </Card>
+    <Snackbar 
+      open={openSuccess} 
+      autoHideDuration={4000} 
+      onClose={() => setOpenSuccess(false)}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+    >
+      <Alert 
+        severity="success" 
+        style={{ margin: '0px 0px 100px 20px', maxWidth: '700px' }}
+        onClose={() => setOpenSuccess(false)}
+      >
+        Uploaded successfully!
+      </Alert>
+    </Snackbar>
+    <Snackbar 
+      open={openWarning} 
+      autoHideDuration={8000} 
+      onClose={() => setOpenWarning(false)}
+      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+    >
+      <Alert 
+        severity="warning" 
+        style={{ margin: '20px', maxWidth: '700px' }}
+        onClose={() => setOpenWarning(false)}
+      >
+        Now it's time to input your original instance on the left-upper corner and start generating!
+      </Alert>
+    </Snackbar>
+  </>
   );
 };
 
