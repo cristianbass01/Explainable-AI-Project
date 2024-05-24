@@ -41,17 +41,12 @@ const App = () => {
           element={
             <>
               <AppHeader 
-                onSelectCounterfactual={handleSelectCounterfactual} 
-                onUploadFeatures={handleUploadFeatures} 
-                onToggleLock={handleToggleLock}
-                newInputFeatures={inputFeatures}
                 setTargetVariable={setTargetVariable}
                 targetVariable={targetVariable}
                 setDatasetName={setDatasetName}
                 datasetName={datasetName}
                 setModelName={setModelName}
                 modelName={modelName}
-                generateCounterfactualRef={generateCounterfactualRef}
               />
               <UploadPage 
                 setDatasetName={setDatasetName} 
@@ -68,17 +63,12 @@ const App = () => {
           element={
             <>
               <AppHeader 
-                onSelectCounterfactual={handleSelectCounterfactual} 
-                onUploadFeatures={handleUploadFeatures} 
-                onToggleLock={handleToggleLock}
-                newInputFeatures={inputFeatures}
                 setTargetVariable={setTargetVariable}
                 targetVariable={targetVariable}
                 setDatasetName={setDatasetName}
                 datasetName={datasetName}
                 setModelName={setModelName}
                 modelName={modelName}
-                generateCounterfactualRef={generateCounterfactualRef}
               />
               < Home />
             </>
