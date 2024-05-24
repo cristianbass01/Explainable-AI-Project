@@ -1,16 +1,16 @@
-from django.db import models
 import dice_ml
 from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
 from counterfactual.components.datasetManager import Dataset
+from counterfactual.components.generator import AbstractCounterfactualGenerator
 from typing import Tuple
 
 
 PROBABILITY = 'probability'
 
-class DiceGenerator(models.Model):
+class DiceGenerator(AbstractCounterfactualGenerator):
     """
     A class that generates counterfactual explanations using the Diverse Counterfactuals (DiCE) algorithm.
 
