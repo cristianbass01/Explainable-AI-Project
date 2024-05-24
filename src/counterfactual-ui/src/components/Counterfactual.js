@@ -15,7 +15,9 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
   }, [counterfactual, inputFeatures]);
 
   const transformDatasetToInputFeatures = (dataset) => {
-    return Object.keys(dataset.columns).map((column) => ({
+    console.log("Dataset:", dataset);
+    return Object.keys(dataset.columns).map((column) => (
+      {
       name: column,
       type: dataset.columns[column].type,
       values: dataset.columns[column].values,
@@ -30,7 +32,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
         const response = await fetch('http://localhost:8000/datasets/');
         const data = await response.json();
         //find the dataset with the name datasetName
-        const dataset = Object.values(data.datasets).find(d => d.title === "processed_data"); //TODO: change to datasetName
+        const dataset = Object.values(data.datasets).find(d => d.title === datasetName); //TODO: change to datasetName
 
         if (!dataset) {
           console.error("Dataset not found");
@@ -171,7 +173,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
             acc[feature.name] = 0;
           }
           else {
-            acc[feature.name] = parseInt(feature.value)
+            acc[feature.name] = feature.value;
           }
         }
         else if (feature.type === 'numeric') {
