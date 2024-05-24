@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Card, CardContent, Typography, Divider, Alert, Snackbar } from '@mui/material';
+import LockIcon from '@mui/icons-material/Lock';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
+import { Box, Button,Drawer, Card, Grid,CardContent, Typography, Divider, Alert, Snackbar } from '@mui/material';
 import FeatureList from './FeatureList';
 import HiddenFeatureList from './HiddenFeatureList';
+import IconButton from '@mui/material/IconButton';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 
-const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable, generateCounterfactualRef }) => {
+const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable, generateCounterfactualRef, onUploadFeatures, onToggleLock }) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
   const [features, setFeatures] = useState(inputFeatures);
 
   const [openSuccess, setOpenSuccess] = useState(true);
   const [openWarning, setOpenWarning] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
 
   useEffect(() => {
     setSelectedCounterfactual({ ...counterfactual, hiddenFeatures: [], features: inputFeatures });
@@ -18,11 +23,11 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     console.log("Dataset:", dataset);
     return Object.keys(dataset.columns).map((column) => (
       {
-      name: column,
-      type: dataset.columns[column].type,
-      values: dataset.columns[column].values,
-      locked: false,
-    }));
+        name: column,
+        type: dataset.columns[column].type,
+        values: dataset.columns[column].values,
+        locked: false,
+      }));
   };
 
   useEffect(() => {
@@ -110,7 +115,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
       const inputProbability = (originalData["probability"] * 100).toFixed(1);
       const inputClass = originalData[targetVariable];
       const predictedClass = item[targetVariable];
-      
+
       // Extract the features
       for (let feature of features) {
         if (feature === targetVariable) {
@@ -222,55 +227,162 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
   generateCounterfactualRef.current = generateCounterfactual;
 
 
+  const renderInputFeaturesForm = () => {
+    if (inputFeatures.length === 0) {
+      console.error('No input features found');
+      return null;
+    }
+
+    return (
+      <Box sx={{ padding: 2, maxHeight: "100%", overflowY: 'auto' }}>
+        <Typography variant="h6" gutterBottom>Input Features</Typography>
+        <form>
+          {inputFeatures.map((feature, index) => (
+            <Grid container spacing={2} alignItems="center" key={index} sx={{ marginBottom: 2 }}>
+              <Grid item>
+                <IconButton onClick={() => onToggleLock(index)}>
+                  {feature.locked ? <LockIcon /> : <LockOpenIcon />}
+                </IconButton>
+              </Grid>
+              <Grid item xs>
+                <Typography variant="subtitle1" noWrap>{feature.name}</Typography>
+              </Grid>
+              <Grid item xs={7}>
+                {feature.type === 'categorical' && feature.values ? (
+                  <select
+                    value={feature.value || ''}
+                    onChange={(e) => {
+                      const newFeatures = [...inputFeatures];
+                      newFeatures[index].value = e.target.value;
+                      setInputFeatures(newFeatures);
+                      onUploadFeatures(newFeatures);
+                    }}
+                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                    disabled={feature.locked}
+                  >
+                    <option value="" disabled>Select {feature.name}</option>
+                    {feature.values.map((value, i) => (
+                      <option key={i} value={value}>{value.toString()}</option>
+                    ))}
+                  </select>
+                ) : feature.type === 'categorical' && feature.values === undefined ? (
+                  <select
+                    value={feature.value || ''}
+                    onChange={(e) => {
+                      const newFeatures = [...inputFeatures];
+                      newFeatures[index].value = e.target.value;
+                      setInputFeatures(newFeatures);
+                      onUploadFeatures(newFeatures);
+                    }}
+                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                    disabled={feature.locked}
+                  >
+                    <option value="" disabled>Select {feature.name}</option>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                  </select>
+                ) : (
+                  <input
+                    type="number"
+                    placeholder={`Enter ${feature.name}`}
+                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                    value={feature.value || ''}
+                    onChange={(e) => {
+                      const newFeatures = [...inputFeatures];
+                      newFeatures[index].value = e.target.value;
+                      setInputFeatures(newFeatures);
+                      onUploadFeatures(newFeatures);
+                    }}
+                    disabled={feature.locked}
+                  />
+                )}
+              </Grid>
+            </Grid>
+          ))}
+        </form>
+        <Box sx={{ textAlign: 'right' }}>
+          <Button
+            variant='contained'
+            onClick={() => {
+              generateCounterfactualRef.current();
+              setDrawerOpen(false);
+            }}
+          >
+            Generate Counterfactual
+          </Button>  
+        </Box>
+      </Box>
+    );
+  };
+
   return (
     <>
-    
-    <Card style={{ margin: '20px', backgroundColor: '#f0f0f0' }}>
-      <CardContent>
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-          <div>
-            <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Input</Typography>
-            <Typography variant="h6" style={{ fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}</Typography>
-          </div>
-          <div>
-            <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Counterfactual</Typography>
-            <Typography variant="h6" style={{ color: 'red', fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}</Typography>
-          </div>
-        </div>
-        <Divider />
-        <FeatureList features={selectedCounterfactual.features} title="Features" onHideFeature={hideFeature} onLockToggle={(index) => toggleLock(index, false)} />
-        <HiddenFeatureList features={selectedCounterfactual.hiddenFeatures} title="Hidden Features" onShowFeature={showFeature} onLockToggle={(index) => toggleLock(index, true)} />
-      </CardContent>
-    </Card>
-    <Snackbar 
-      open={openSuccess} 
-      autoHideDuration={4000} 
-      onClose={() => setOpenSuccess(false)}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-    >
-      <Alert 
-        severity="success" 
-        style={{ margin: '0px 0px 100px 20px', maxWidth: '700px' }}
+      <IconButton
+        edge="start"
+        color="inherit"
+        aria-label="menu"
+        onClick={() => setDrawerOpen(true)}
+      >
+        <ChevronRightIcon />
+      </IconButton>
+      <div style={{ display: 'flex', transition: 'margin-left 0.3s', marginLeft: drawerOpen ? 800 : 0 }}>
+        <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
+          <Box
+            sx={{ minWidth: 800, padding: 2, maxWidth: "80%" }}
+            role="presentation"
+          >
+            {renderInputFeaturesForm()}
+          </Box>
+        </Drawer>
+        <main style={{ flexGrow: 1, padding: '20px' }}>
+          <Card style={{ margin: '20px', backgroundColor: '#f0f0f0' }}>
+            <CardContent>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                <div>
+                  <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Input</Typography>
+                  <Typography variant="h6" style={{ fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}</Typography>
+                </div>
+                <div>
+                  <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Counterfactual</Typography>
+                  <Typography variant="h6" style={{ color: 'red', fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}</Typography>
+                </div>
+              </div>
+              <Divider />
+              <FeatureList features={selectedCounterfactual.features} title="Features" onHideFeature={hideFeature} onLockToggle={(index) => toggleLock(index, false)} />
+              <HiddenFeatureList features={selectedCounterfactual.hiddenFeatures} title="Hidden Features" onShowFeature={showFeature} onLockToggle={(index) => toggleLock(index, true)} />
+            </CardContent>
+          </Card>
+        </main>
+      </div>
+      <Snackbar
+        open={openSuccess}
+        autoHideDuration={4000}
         onClose={() => setOpenSuccess(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        Uploaded successfully!
-      </Alert>
-    </Snackbar>
-    <Snackbar 
-      open={openWarning} 
-      autoHideDuration={8000} 
-      onClose={() => setOpenWarning(false)}
-      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-    >
-      <Alert 
-        severity="warning" 
-        style={{ margin: '20px', maxWidth: '700px' }}
+        <Alert
+          severity="success"
+          style={{ margin: '0px 0px 100px 20px', maxWidth: '700px' }}
+          onClose={() => setOpenSuccess(false)}
+        >
+          Uploaded successfully!
+        </Alert>
+      </Snackbar>
+      <Snackbar
+        open={openWarning}
+        autoHideDuration={8000}
         onClose={() => setOpenWarning(false)}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        Now it's time to input your original instance on the left-upper corner and start generating!
-      </Alert>
-    </Snackbar>
-  </>
+        <Alert
+          severity="warning"
+          style={{ margin: '20px', maxWidth: '700px' }}
+          onClose={() => setOpenWarning(false)}
+        >
+          Now it's time to input your original instance on the left-upper corner and start generating!
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 
