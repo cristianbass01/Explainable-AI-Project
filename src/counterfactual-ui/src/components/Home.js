@@ -4,7 +4,7 @@ import logo from './../images/logo.png';
 import faq from './../images/faq.png';
 import aiImage from './../images/robotic-hand.png';
 
-const Welcome = () => {
+const Home = () => {
   return (
     <Grid container style={{ alignItems: 'center', display: 'flex', justifyContent: 'center' }} backgroundColor='#2056A9'>
       <Grid container style={{ minHeight: '80vh', alignItems: 'center', justifyContent: 'center'}}  backgroundColor="#0B2230">
@@ -77,5 +77,5 @@ const Welcome = () => {
   );
 };
 
-export default Welcome;
+export default Home;
 

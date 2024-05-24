@@ -30,7 +30,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
         const response = await fetch('http://localhost:8000/datasets/');
         const data = await response.json();
         //find the dataset with the name datasetName
-        const dataset = Object.values(data.datasets).find(d => d.title === "processed_data"); //TODO: change to datasetName
+        const dataset = Object.values(data.datasets).find(d => d.title === datasetName);
 
         if (!dataset) {
           console.error("Dataset not found");
