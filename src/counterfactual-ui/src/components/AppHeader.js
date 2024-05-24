@@ -204,27 +204,32 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
 
   return (
     <>
-      <AppBar position="static" style={{ background: '#f5f5f5', color: '#000' }}>
+      <AppBar position="static" style={{ background: '#f5f5f5', color: '#000', height: '64px' }}>
         <Toolbar>
           <Grid container spacing={2} alignItems="center">
-            <Grid item>
-              <IconButton edge="start" color="inherit" aria-label="menu" onClick={toggleDrawer(true)}>
-                <MenuIcon />
-              </IconButton>
-            </Grid>
+            { datasetName && modelName && (
+              <>
+                <Grid item>
+                  <IconButton edge="start" color="inherit" aria-label="menu" onClick={toggleDrawer(true)}>
+                    <MenuIcon />
+                  </IconButton>
+                </Grid>
+                <Grid item xs>
+                  <Typography variant="h6" style={{ flexGrow: 1, fontFamily: 'Pacifico, cursive' }}>
+                    Input Features
+                  </Typography>
+                </Grid>
+              </>
+            )}
             <Grid item xs>
-              <Typography variant="h6" style={{ flexGrow: 1, fontFamily: 'Pacifico, cursive' }}>
-                Input Features
-              </Typography>
+              {datasetName && modelName && (
+                <Box display="flex" justifyContent="center">
+                  <Typography variant="h6" style={{ marginRight: '10px' }}>
+                    Dataset: {datasetName} | Model: {modelName}
+                  </Typography>
+                </Box>
+              )}
             </Grid>
-
-          {datasetName && modelName && (
-            <Box display="flex" justifyContent="center">
-              <Typography variant="h6" style={{ marginRight: '10px' }}>
-                Dataset: {datasetName} | Model: {modelName}
-              </Typography>
-            </Box>
-          )}
             <Grid item>
               <Button
                 variant='contained'

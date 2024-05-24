@@ -4,6 +4,7 @@ import AppHeader from './components/AppHeader';
 import Counterfactual from './components/Counterfactual';
 import UploadPage from './components/UploadPage';
 import counterfactuals from './data/counterfactuals';
+import Welcome from './components/Welcome';
 
 const App = () => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(counterfactuals[0]);
@@ -54,17 +55,22 @@ const App = () => {
                 modelName={modelName}
                 generateCounterfactualRef={generateCounterfactualRef}
               />
-              <Counterfactual 
-                counterfactual={null} 
-                inputFeatures={inputFeatures} 
-                onToggleLock={handleToggleLock}
-                datasetName={datasetName}
-                setInputFeatures={setInputFeatures}
-                onUploadFeatures={handleUploadFeatures}
-                modelName={modelName}
-                targetVariable={targetVariable}
-                generateCounterfactualRef={generateCounterfactualRef}
-              />
+              {datasetName && modelName
+                  ?                  
+                  <Counterfactual 
+                      counterfactual={null} 
+                      inputFeatures={inputFeatures} 
+                      onToggleLock={handleToggleLock}
+                      datasetName={datasetName}
+                      setInputFeatures={setInputFeatures}
+                      onUploadFeatures={handleUploadFeatures}
+                      modelName={modelName}
+                      targetVariable={targetVariable}
+                      generateCounterfactualRef={generateCounterfactualRef}
+                    />
+                  : <Welcome />
+              }
+              
             </>
           } 
         />

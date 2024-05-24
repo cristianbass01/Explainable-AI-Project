@@ -106,9 +106,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
       const inputProbability = (originalData["probability"] * 100).toFixed(1);
       const inputClass = originalData[targetVariable];
       const predictedClass = item[targetVariable];
-
-
-
+      
       // Extract the features
       for (let feature of features) {
         if (feature === targetVariable) {
