@@ -13,7 +13,11 @@ import Dialog from '@mui/material/Dialog';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import Slide from '@mui/material/Slide';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { Box, Button, Typography, Grid, Select, MenuItem, FormControl, InputLabel, Divider, DialogTitle, Alert, Snackbar } from '@mui/material';
+import Modal from './Modal';
+import TutorialOverlay from './TutorialOverlay';
+
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -30,6 +34,7 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
   const [datasets, setDatasets] = useState([]);
   const [models, setModels] = useState([]);
   const [modelType, setModelType] = useState('');
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     setInputFeatures(newInputFeatures);
@@ -41,7 +46,7 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
     }
     setDrawerOpen(open);
   };
-  
+
 
   const handleDatasetNameChange = (event) => {
     setDatasetName(event.target.value);
@@ -113,7 +118,7 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
     }
   };
 
-  
+
   const renderInputFeaturesForm = () => {
     if (inputFeatures.length === 0) {
       console.error('No input features found');
@@ -305,7 +310,7 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
                   </Grid>
                 </DialogContent>
                 <DialogActions>
-                <Button
+                  <Button
                     variant='outlined'
                     onClick={() => {
                       setDatasetName('');
@@ -313,7 +318,7 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
                       setModelName('');
                       setModelType('');
                       setOpenSelect(false)
-                      }}>
+                    }}>
                     Cancel
                   </Button>
                   <Button
@@ -340,6 +345,19 @@ const AppHeader = ({ onUploadFeatures, onToggleLock, newInputFeatures, setDatase
               >
                 Upload
               </Button>
+            </Grid>
+            <Grid item>
+              <Button
+                variant='contained'
+                onClick={() => setShowModal(true)}
+                startIcon={<HelpOutlineIcon />}
+              >
+              </Button>
+              < div >
+                <Modal show={showModal} onClose={() => setShowModal(false)}>
+                  <TutorialOverlay />
+                </Modal>
+              </div >
             </Grid>
           </Grid>
         </Toolbar>

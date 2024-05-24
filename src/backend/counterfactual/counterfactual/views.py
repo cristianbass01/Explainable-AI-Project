@@ -12,6 +12,7 @@ from counterfactual.models.modelManager import ModelManager
 from counterfactual.models.datasetManager import DatasetManager
 from counterfactual.models.counterfactualBinner import CounterfactualBinner
 from counterfactual.models.globalBinner import GlobalBinner
+from counterfactual.models.encoder import Encoder
 
 import dice_ml
 from dice_ml.utils import helpers # helper functions
@@ -79,10 +80,16 @@ def gen_counterfactual(request: HttpRequest) -> HttpResponse:
         dm = DatasetManager()
         dataset = dm.get_dataset(dataset_name)
 
+        enc = Encoder(dataset)
+        query = enc.encode(query)
+        dataset.dataset = enc.encode(dataset.dataset)
+
         factory = CounterfactualFactory()
 
         gen = factory.create_counterfactual(gen_type, model, dataset)
         counterfactuals, query_with_probability = gen.get_counterfactuals(query, featuresToVary, count)
+
+        query_with_probability, counterfactuals = enc.decode(query_with_probability, counterfactuals)
 
         gb_binner = GlobalBinner(dataset)
         cf_binner = CounterfactualBinner(dataset)
