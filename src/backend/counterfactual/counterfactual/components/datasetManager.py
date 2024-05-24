@@ -92,6 +92,9 @@ class Dataset:
     
     def get_target(self) -> str:
         return self.target
+    
+    def sample(self, n: int) -> pd.DataFrame:
+        return self.dataset.sample(n)
 
 class DatasetManager:
     """

@@ -182,3 +182,15 @@ def get_datasets(request: HttpRequest) -> JsonResponse:
 @require_http_methods(["GET"])
 def get_generators(request: HttpRequest) -> JsonResponse:
     return JsonResponse({'supported_generators': SUPPORTED_MODELS}, status=200)
+
+@require_http_methods(["POST"])
+@csrf_exempt
+def get_database_sample(request: HttpRequest) -> JsonResponse:
+    body = json.loads(request.body)
+    datasetName = body[DATASET]
+    sample_count = body[COUNT]
+    dm = DatasetManager()
+    dataset = dm.get_dataset(datasetName)
+    sample = dataset.sample(sample_count)
+
+    return JsonResponse({"samples": sample.to_dict(orient='records') }, status=200)
