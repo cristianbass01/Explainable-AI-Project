@@ -6,13 +6,13 @@ from raiutils.exceptions import UserConfigValidationException
 import pandas as pd
 from django.core.exceptions import ValidationError
 
-from counterfactual.models.factory import CounterfactualFactory, DICE
+from counterfactual.components.factory import CounterfactualFactory, DICE
 from counterfactual.forms import UploadFileForm, UploadDatasetForm
-from counterfactual.models.modelManager import ModelManager
-from counterfactual.models.datasetManager import DatasetManager
-from counterfactual.models.counterfactualBinner import CounterfactualBinner
-from counterfactual.models.globalBinner import GlobalBinner
-from counterfactual.models.encoder import Encoder
+from counterfactual.components.modelManager import ModelManager
+from counterfactual.components.datasetManager import DatasetManager
+from counterfactual.components.counterfactualBinner import CounterfactualBinner
+from counterfactual.components.globalBinner import GlobalBinner
+from counterfactual.components.encoder import Encoder
 
 import dice_ml
 from dice_ml.utils import helpers # helper functions
@@ -33,17 +33,7 @@ TARGET = 'target'
 @require_http_methods(["POST"])
 @csrf_exempt
 def gen_counterfactual(request: HttpRequest) -> HttpResponse:
-    """
-    Generates counterfactual explanations based on the given query.
-
-    The request body should be a JSON object with the following keys:
-        - "query": A dictionary where keys are feature names and values are feature values for the original instance.
-        - "featuresToVary": A list of feature names to vary in the counterfactuals.
-        - "modelName": The name of the machine learning model to use.
-        - "dataset": The name of the dataset to use.
-        - "type": The type of counterfactual generator to use (currently only "DICE" is supported).
-        - "count": The number of counterfactuals to generate.
-
+    """    model agnostic probabilities
     Args:
         request (HttpRequest): The HTTP request object containing the query.
 

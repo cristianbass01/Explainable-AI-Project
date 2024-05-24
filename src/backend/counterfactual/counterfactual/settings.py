@@ -38,7 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'dice_ml',
-    'counterfactual.models',
+    'counterfactual.components',
     'corsheaders',
 ]
 
