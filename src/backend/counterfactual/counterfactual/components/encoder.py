@@ -1,4 +1,4 @@
-from counterfactual.models.datasetManager import Dataset
+from counterfactual.components.datasetManager import Dataset
 from typing import Tuple
 import pandas as pd
 

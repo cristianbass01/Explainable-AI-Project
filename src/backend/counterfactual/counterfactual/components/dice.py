@@ -1,16 +1,16 @@
-from django.db import models
 import dice_ml
 from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
-from counterfactual.models.datasetManager import Dataset
+from counterfactual.components.datasetManager import Dataset
+from counterfactual.components.generator import AbstractCounterfactualGenerator
 from typing import Tuple
 
 
 PROBABILITY = 'probability'
 
-class DiceGenerator(models.Model):
+class DiceGenerator(AbstractCounterfactualGenerator):
     """
     A class that generates counterfactual explanations using the Diverse Counterfactuals (DiCE) algorithm.
 
@@ -20,7 +20,6 @@ class DiceGenerator(models.Model):
 
     Attributes:
         _target_name (str): The name of the target variable.
-        _to_add_probabilities (bool): Indicates whether to add probabilities to the counterfactuals.
         _model (object): The machine learning model used for generating counterfactuals.
         _gen (dice_ml.Dice): The DiCE object used for generating counterfactuals.
 
@@ -49,7 +48,6 @@ class DiceGenerator(models.Model):
         if model.get_title() == "adult_income":
             func="ohe-min-max"
 
-        self._to_add_probabilities = (model.get_type() == "sklearn")
         self._model = model.get_model()
 
         m = dice_ml.Model(model = model.get_model(),
@@ -70,7 +68,7 @@ class DiceGenerator(models.Model):
         target_val = cf[self._target_name]
 
         cf.drop(columns=[self._target_name], inplace=True)
-        res = self._model.predict_proba(cf)
+        res = self._gen.predict_fn(cf)
         cf[PROBABILITY] = np.max(res, axis=1)
 
         cf[self._target_name] = target_val
@@ -92,11 +90,10 @@ class DiceGenerator(models.Model):
         cfs = self._gen.generate_counterfactuals(query_instance, total_CFs=count, desired_class="opposite", features_to_vary=features_to_vary)
         counterfactuals = cfs.cf_examples_list[0].final_cfs_df
 
-        if self._to_add_probabilities:
-            original_prob = np.max(self._model.predict_proba(query_instance)[0])
-            query_instance[self._target_name] = self._model.predict(query_instance)[0]
-            query_instance[PROBABILITY] = original_prob
-            counterfactuals = self._add_probabilities(counterfactuals)
+        original_prob = self._gen.predict_fn(query_instance)
+        query_instance[self._target_name] = self._gen.get_model_output_from_scores(original_prob)[0]
+        query_instance[PROBABILITY] = np.max(original_prob)
+        counterfactuals = self._add_probabilities(counterfactuals)
 
         return counterfactuals, query_instance
 

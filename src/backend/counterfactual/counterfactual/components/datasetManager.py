@@ -4,7 +4,7 @@ from django.db import models
 from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
 import dice_ml
-from counterfactual.models.fileManager import FileManager
+from counterfactual.components.fileManager import FileManager
 import pandas as pd
 from typing import IO, List
 import numpy as np
@@ -92,6 +92,9 @@ class Dataset:
     
     def get_target(self) -> str:
         return self.target
+    
+    def sample(self, n: int) -> pd.DataFrame:
+        return self.dataset.sample(n)
 
 class DatasetManager:
     """

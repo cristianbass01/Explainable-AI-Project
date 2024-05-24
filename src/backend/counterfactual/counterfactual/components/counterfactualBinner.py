@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 from typing import List
-from .datasetManager import Dataset
+from counterfactual.components.datasetManager import Dataset
 
 class CounterfactualBinner:
     """
