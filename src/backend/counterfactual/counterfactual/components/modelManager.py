@@ -2,7 +2,7 @@ from typing import Iterable
 from django.db import models
 from dice_ml.utils import helpers # helper functions
 from sklearn.model_selection import train_test_split
-from counterfactual.models.fileManager import FileManager
+from counterfactual.components.fileManager import FileManager
 from typing import IO, List
 
 # In memory simulation of db that keeps info on model paths

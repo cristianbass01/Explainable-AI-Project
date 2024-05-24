@@ -382,6 +382,7 @@ const AppHeader = ({ onUploadFeatures,
           </Grid>
         </Toolbar>
       </AppBar>
+      <div style={{ display: 'flex', transition: 'margin-left 0.3s', marginLeft: drawerOpen ? 800 : 0 }}></div>
       <Drawer anchor="left" open={drawerOpen} onClose={toggleDrawer(false)}>
         <Box
           sx={{ minWidth: 800, padding: 2, maxWidth: "80%" }}

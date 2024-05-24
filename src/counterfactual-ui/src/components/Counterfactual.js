@@ -15,7 +15,9 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
   }, [counterfactual, inputFeatures]);
 
   const transformDatasetToInputFeatures = (dataset) => {
-    return Object.keys(dataset.columns).map((column) => ({
+    console.log("Dataset:", dataset);
+    return Object.keys(dataset.columns).map((column) => (
+      {
       name: column,
       type: dataset.columns[column].type,
       values: dataset.columns[column].values,
@@ -171,7 +173,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
             acc[feature.name] = 0;
           }
           else {
-            acc[feature.name] = parseInt(feature.value)
+            acc[feature.name] = feature.value;
           }
         }
         else if (feature.type === 'numeric') {
