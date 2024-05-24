@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import AppHeader from './components/AppHeader';
 import Counterfactual from './components/Counterfactual';
 import UploadPage from './components/UploadPage';
-import Welcome from './components/Welcome';
+import Home from './components/Home';
 import counterfactuals from './data/counterfactuals';
 
 const App = () => {
@@ -13,9 +13,6 @@ const App = () => {
   const [modelName, setModelName] = useState('');
   const [targetVariable, setTargetVariable] = useState('');
   const generateCounterfactualRef = useRef();
-
-  const [openWelcome, setOpenWelcome] = useState(true);
-  const [openCounterfactual, setOpenCounterfactual] = useState(false);
 
   const handleSelectCounterfactual = (counterfactual) => {
     setSelectedCounterfactual(counterfactual);
@@ -39,20 +36,8 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Navigate to="/app" />} />
+        <Route path="/" element={<Navigate to="/home" />} />
         <Route path="/upload" 
-          element={<UploadPage 
-                      setDatasetName={setDatasetName} 
-                      datasetName={datasetName} 
-                      setModelName={setModelName} 
-                      modelName={modelName} 
-                      setTargetVariable={setTargetVariable} 
-                      targetVariable={targetVariable}
-                      setOpenWelcome={setOpenWelcome}
-                      setOpenCounterfactual={setOpenCounterfactual}
-                    />} />
-        <Route 
-          path="/app" 
           element={
             <>
               <AppHeader 
@@ -67,25 +52,67 @@ const App = () => {
                 setModelName={setModelName}
                 modelName={modelName}
                 generateCounterfactualRef={generateCounterfactualRef}
-                setOpenWelcome={setOpenWelcome}
-                setOpenCounterfactual={setOpenCounterfactual}
               />
-              {openWelcome && <Welcome />}
-              {openCounterfactual &&
-                       <Counterfactual 
-                        counterfactual={null} 
-                        inputFeatures={inputFeatures} 
-                        onToggleLock={handleToggleLock}
-                        datasetName={datasetName}
-                        setInputFeatures={setInputFeatures}
-                        onUploadFeatures={handleUploadFeatures}
-                        modelName={modelName}
-                        targetVariable={targetVariable}
-                        generateCounterfactualRef={generateCounterfactualRef}
-                      />
-              }
+              <UploadPage 
+                setDatasetName={setDatasetName} 
+                datasetName={datasetName} 
+                setModelName={setModelName} 
+                modelName={modelName} 
+                setTargetVariable={setTargetVariable} 
+                targetVariable={targetVariable}
+              />
+            </>
+          } />
+        <Route 
+          path="/home" 
+          element={
+            <>
+              <AppHeader 
+                onSelectCounterfactual={handleSelectCounterfactual} 
+                onUploadFeatures={handleUploadFeatures} 
+                onToggleLock={handleToggleLock}
+                newInputFeatures={inputFeatures}
+                setTargetVariable={setTargetVariable}
+                targetVariable={targetVariable}
+                setDatasetName={setDatasetName}
+                datasetName={datasetName}
+                setModelName={setModelName}
+                modelName={modelName}
+                generateCounterfactualRef={generateCounterfactualRef}
+              />
+              < Home />
             </>
           } 
+        />
+        <Route path="/counterfactual" 
+          element={
+            <>
+              <AppHeader 
+                onSelectCounterfactual={handleSelectCounterfactual} 
+                onUploadFeatures={handleUploadFeatures} 
+                onToggleLock={handleToggleLock}
+                newInputFeatures={inputFeatures}
+                setTargetVariable={setTargetVariable}
+                targetVariable={targetVariable}
+                setDatasetName={setDatasetName}
+                datasetName={datasetName}
+                setModelName={setModelName}
+                modelName={modelName}
+                generateCounterfactualRef={generateCounterfactualRef}
+              />
+              <Counterfactual 
+                counterfactual={null} 
+                inputFeatures={inputFeatures} 
+                onToggleLock={handleToggleLock}
+                datasetName={datasetName}
+                setInputFeatures={setInputFeatures}
+                onUploadFeatures={handleUploadFeatures}
+                modelName={modelName}
+                targetVariable={targetVariable}
+                generateCounterfactualRef={generateCounterfactualRef}
+              />
+            </>
+          }
         />
       </Routes>
     </Router>

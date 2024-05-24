@@ -17,7 +17,7 @@ import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { Box, Button, Typography, Grid, Select, MenuItem, FormControl, InputLabel, Divider, DialogTitle, Alert, Snackbar } from '@mui/material';
 import Modal from './Modal';
 import TutorialOverlay from './TutorialOverlay';
-
+import logo from './../images/logo.png';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -33,8 +33,7 @@ const AppHeader = ({ onUploadFeatures,
                       setTargetVariable, 
                       targetVariable, 
                       generateCounterfactualRef,
-                      setOpenWelcome,
-                      setOpenCounterfactual }) => {
+                       }) => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [inputFeatures, setInputFeatures] = useState([]);
   const [openSelect, setOpenSelect] = useState(false);
@@ -81,42 +80,34 @@ const AppHeader = ({ onUploadFeatures,
       console.log('No model found with that name');
     }
   };
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/datasets/');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        console.log("Datasets found:", data)
-        setDatasets(data.datasets);
-      } catch (error) {
-        console.error('Error fetching loaded datasets:', error);
+  
+  const fetchDatasets = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/datasets/');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    };
-
-    fetchData();
-  }, []);
-
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await fetch('http://localhost:8000/models/');
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const data = await response.json();
-        console.log("Model found:", data)
-        setModels(data.models);
-      } catch (error) {
-        console.error('Error fetching loaded models:', error);
+      const data = await response.json();
+      console.log("Datasets found:", data)
+      setDatasets(data.datasets);
+    } catch (error) {
+      console.error('Error fetching loaded datasets:', error);
+    }
+  };
+  
+  const fetchModels = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/models/');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
-    };
-
-    fetchData();
-  }, []);
+      const data = await response.json();
+      console.log("Model found:", data)
+      setModels(data.models);
+    } catch (error) {
+      console.error('Error fetching loaded models:', error);
+    }
+  };
 
   const handleConfirm = () => {
     if (!datasetName) {
@@ -125,8 +116,7 @@ const AppHeader = ({ onUploadFeatures,
       setOpenModelAlert(true);
     } else {
       setOpenSelect(false);
-      setOpenWelcome(false);
-      setOpenCounterfactual(true);
+      navigate('/counterfactual');
     }
   };
 
@@ -208,7 +198,6 @@ const AppHeader = ({ onUploadFeatures,
             variant='contained'
             onClick={() => {
               generateCounterfactualRef.current();
-              setOpenCounterfactual(true);
               setDrawerOpen(false);
             }}
           >
@@ -224,6 +213,19 @@ const AppHeader = ({ onUploadFeatures,
       <AppBar position="static" style={{ background: '#f5f5f5', color: '#000', height: '64px' }}>
         <Toolbar>
           <Grid container spacing={2} alignItems="center">
+            <Grid item>
+            <IconButton
+                onClick={() => {
+                  setDatasetName('');
+                  setTargetVariable('');
+                  setModelName('');
+                  setModelType('');
+                  navigate('/home');
+                }}
+              >
+                <img src={logo} alt="logo" style={{ width: '50px', height: 'auto' }} />
+              </IconButton>
+            </Grid>
             { datasetName && modelName && (
               <>
                 <Grid item>
@@ -250,7 +252,11 @@ const AppHeader = ({ onUploadFeatures,
             <Grid item>
               <Button
                 variant='contained'
-                onClick={() => setOpenSelect(true)}
+                onClick={() => {
+                  fetchDatasets();
+                  fetchModels();
+                  setOpenSelect(true)
+                }}
                 startIcon={<FileOpenIcon />}
                 style={{ marginRight: '10px' }}
               >
@@ -360,10 +366,12 @@ const AppHeader = ({ onUploadFeatures,
             </Grid>
             <Grid item>
               <Button
-                variant='contained'
-                onClick={() => setShowModal(true)}
+                variant="contained"
+                color="primary"
                 startIcon={<HelpOutlineIcon />}
+                onClick={() => setShowModal(true)}
               >
+                Help
               </Button>
               < div >
                 <Modal show={showModal} onClose={() => setShowModal(false)}>
