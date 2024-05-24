@@ -78,17 +78,12 @@ const App = () => {
           element={
             <>
               <AppHeader 
-                onSelectCounterfactual={handleSelectCounterfactual} 
-                onUploadFeatures={handleUploadFeatures} 
-                onToggleLock={handleToggleLock}
-                newInputFeatures={inputFeatures}
                 setTargetVariable={setTargetVariable}
                 targetVariable={targetVariable}
                 setDatasetName={setDatasetName}
                 datasetName={datasetName}
                 setModelName={setModelName}
                 modelName={modelName}
-                generateCounterfactualRef={generateCounterfactualRef}
               />
               <Counterfactual 
                 counterfactual={null} 
