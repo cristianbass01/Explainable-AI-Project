@@ -5,6 +5,7 @@ from typing import Tuple
 class AbstractCounterfactualGenerator(ABC):
     """
     An abstract base class for counterfactual generators.
+    Implement this if you want to use your own generator
 
     Methods:
         get_counterfactuals(query_instance: pd.DataFrame = None, features_to_vary: str = "all", count: int = 1) -> Tuple[pd.DataFrame, pd.DataFrame]:
