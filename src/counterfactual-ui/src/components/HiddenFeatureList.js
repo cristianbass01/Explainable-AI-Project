@@ -17,7 +17,7 @@ const HiddenFeatureList = ({ features, title, onShowFeature, onLockToggle }) => 
         aria-controls="panel1a-content"
         id="panel1a-header"
       >
-        <Typography variant="h6" sx={{ fontSize: '30px' }}>
+        <Typography variant="h5">
           {hasChangedFeature && <WarningIcon style={{ color: 'red', verticalAlign: 'middle', marginRight: '5px' }} />}
           {title}
         </Typography>
@@ -37,32 +37,31 @@ const HiddenFeatureList = ({ features, title, onShowFeature, onLockToggle }) => 
                   <ListItemText
                     primary={
                       <Grid container alignItems="center">
-                      <Grid item xs={5}>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '26px' }}>
-                          {feature.name.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
-                        </Typography>
-                      </Grid>
-                      <Grid item xs={3}>
-                        <Typography variant="h6" sx={{ fontSize: '26px' }} color='primary'>
-                          {feature.value}
-                        </Typography>
-                      </Grid>
-                      { feature.changed && (
-                        <>
-                        <Grid item sx={{ display: 'flex', justifyContent: 'center' }}>
-                          <ArrowForwardIcon color='error'/>
+                        <Grid item xs={5} marginLeft={'20px'}>
+                          <Typography variant="h6">
+                            {feature.name.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
+                          </Typography>
                         </Grid>
                         <Grid item xs={3}>
-                          <Typography variant="h6" sx={{ color: 'red', fontSize: '26px',  textAlign: 'right' }}>
-                            {feature.counterfactual}
-                          </Typography> 
+                          <Typography variant="h6" color='primary'>
+                            {feature.value}
+                          </Typography>
                         </Grid>
-                        </>
-                      )
-                    } 
+                        { feature.changed && (
+                            <>
+                              <Grid item sx={{ display: 'flex', justifyContent: 'center' }}>
+                                <ArrowForwardIcon color='error'/>
+                              </Grid>
+                              <Grid item xs={3}>
+                                <Typography variant="h6" sx={{ color: 'red',  textAlign: 'right' }}>
+                                  {feature.counterfactual}
+                                </Typography> 
+                              </Grid>
+                            </>
+                          )
+                        } 
                     </Grid>
                     }
-                    primaryTypographyProps={{ style: { fontWeight: 'bold', fontSize: '26px' } }}
                   />
                 </ListItem>
                 {index < features.length - 1 && <Divider />}

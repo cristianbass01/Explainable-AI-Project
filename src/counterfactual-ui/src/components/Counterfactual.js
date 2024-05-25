@@ -1,24 +1,26 @@
 import React, { useEffect, useState, useRef } from 'react';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
-import { Box, Button, Drawer, Card, Grid, CardContent, Typography, Divider, Alert, Snackbar, IconButton } from '@mui/material';
+import { Box, Button, Drawer, Card, Grid, CardContent, Typography, Divider, Alert, Snackbar, IconButton, Backdrop, TextField } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import FeatureList from './FeatureList';
 import HiddenFeatureList from './HiddenFeatureList';
+import ShuffleIcon from '@mui/icons-material/Shuffle';
+import CircularProgress from '@mui/material/CircularProgress';
 
-const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable, generateCounterfactualRef, onUploadFeatures, onToggleLock }) => {
+const Counterfactual = ({datasetName, modelName, targetVariable }) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
-  const [features, setFeatures] = useState(inputFeatures);
+  const [features, setFeatures] = useState([]);
   const [openWarning, setOpenWarning] = useState(true);
-  const [drawerInputOpen, setDrawerInputOpen] = useState(false);
+  const [drawerInputOpen, setDrawerInputOpen] = useState(true);
   const [drawerCounterfactualOpen, setDrawerCounterfactualOpen] = useState(false);
   const [alternativeCounterfactuals, setAlternativeCounterfactuals] = useState([]);
+  const [numCounterfactuals, setNumCounterfactuals] = useState(1);
   const containerRef = useRef(null);
 
-  useEffect(() => {
-    setSelectedCounterfactual({ ...counterfactual, hiddenFeatures: [], features: inputFeatures });
-  }, [counterfactual, inputFeatures]);
+  const [isShuffling, setIsShuffling] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,19 +34,61 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           return;
         }
 
-        //inputFeatures = transformDatasetToInputFeatures(dataset);
         const transformedFeatures = transformDatasetToInputFeatures(dataset);
-        setFeatures(transformedFeatures);
         const targetIndex = transformedFeatures.findIndex(feature => feature.name === targetVariable);
         transformedFeatures.splice(targetIndex, 1);
-        setInputFeatures(transformedFeatures);
+        setFeatures(transformedFeatures);
+        setSelectedCounterfactual({ features: transformedFeatures, hiddenFeatures: [] });
       } catch (error) {
         console.error('Error fetching dataset:', error);
       }
     }
 
     fetchData();
-  }, [datasetName, setInputFeatures, targetVariable]);
+  }, [datasetName, targetVariable]);
+
+  const handleToggleLock = (index) => {
+    const newFeatures = [...features];
+    newFeatures[index].locked = !newFeatures[index].locked;
+    setFeatures(newFeatures);
+    const updatedCounterfactual = { ...selectedCounterfactual, features: newFeatures };
+    setSelectedCounterfactual(updatedCounterfactual);
+  };
+
+  const fetchInstances = async (nInstances) => {
+    try {
+      const response = await fetch('http://localhost:8000/sampleDataset/',  {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'User-Agent': 'Mozilla/5.0',
+        },
+        body: JSON.stringify({
+          count: nInstances,
+          dataset: datasetName,
+        }),
+      });
+
+      const data = await response.json();
+      const instances = data.samples;
+      console.log("Instances found:", instances);
+
+      if (instances) {
+        const oldFeatures = [...features];
+        return instances.map((instance) => {
+          const newFeatures = oldFeatures.map((feature) => {
+            const newFeature = { ...feature };
+            newFeature.value = instance[feature.name];
+            return newFeature;
+          });
+          return newFeatures;
+        });
+      }
+      
+    } catch (error) {
+      console.error('Error fetching instance:', error);
+    }
+  };
 
   const transformDatasetToInputFeatures = (dataset) => {
     return Object.keys(dataset.columns).map((column) => ({
@@ -54,10 +98,6 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
       locked: false,
     }));
   };
-
-  if (!selectedCounterfactual) {
-    return <div>Loading...</div>;
-  }
 
   const hideFeature = (index) => {
     const featureToHide = selectedCounterfactual.features[index];
@@ -148,7 +188,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     });
   }
 
-  const generateCounterfactual = async () => {
+  const generateCounterfactuals = async (count) => {
     try {
       const query = features.reduce((acc, feature) => {
         if (feature.type === 'categorical') {
@@ -165,6 +205,9 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
         return acc;
       }, {});
 
+      console.log('Query:', query);
+      console.log('Number of counterfactuals:', count);
+
       const response = await fetch('http://localhost:8000/counterfactual/', {
         method: 'POST',
         headers: {
@@ -176,7 +219,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           modelName: modelName,
           dataset: datasetName,
           type: 'DICE',
-          count: 5,
+          count: parseInt(count),
           featuresToVary: features.filter(feature => !feature.locked).map(feature => feature.name),
         }),
       });
@@ -195,73 +238,115 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     }
   };
 
-  generateCounterfactualRef.current = generateCounterfactual;
-
   const renderInputFeaturesForm = () => {
-    if (inputFeatures.length === 0) {
+    if (features.length === 0) {
       console.error('No input features found');
       return null;
     }
 
     return (
       <Box sx={{ padding: 2, maxHeight: "100%", overflowY: 'auto' }}>
-        <Typography variant="h6" gutterBottom>Input Features</Typography>
+        <Backdrop open={isShuffling} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+          <CircularProgress color="inherit" />
+        </Backdrop>
+        <Grid container justifyContent="center" alignItems="center" marginBottom={'10px'}>
+          <Grid item xs={11}>
+            <Typography variant="h5">Input Features</Typography>
+          </Grid>
+          <Grid item xs={1} justifyContent={'center'}>
+            <IconButton onClick={() => setDrawerInputOpen(false)}>
+              <ChevronLeftIcon />
+            </IconButton>
+          </Grid>
+        </Grid>
+        
+        <Divider/>
+        <Grid container justifyContent="end" marginTop={2} marginBottom={2}>
+          <Button 
+            variant='contained'
+            endIcon={<ShuffleIcon />}
+            onClick={async () => {
+              setIsShuffling(true);
+              const instances = await fetchInstances(1);
+              if (instances && instances.length > 0) {
+                setFeatures(instances[0]);
+                console.log('Instances found:', instances[0]);
+              } else {
+                console.error('No instances found');
+              }
+              setIsShuffling(false);
+            }} >
+              <Typography variant="h6">
+                Shuffle Instance
+              </Typography>
+          </Button>
+        </Grid>
         <form>
-          {inputFeatures.map((feature, index) => (
+          {features.map((feature, index) => (
             <Grid container spacing={2} alignItems="center" key={index} sx={{ marginBottom: 2 }}>
               <Grid item>
-                <IconButton onClick={() => onToggleLock(index)}>
+                <IconButton onClick={() => handleToggleLock(index)}>
                   {feature.locked ? <LockIcon /> : <LockOpenIcon />}
                 </IconButton>
               </Grid>
               <Grid item xs>
-                <Typography variant="subtitle1" noWrap>{feature.name}</Typography>
+                <Typography variant="h6" noWrap>
+                  {feature.name.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
+                </Typography>
               </Grid>
-              <Grid item xs={7}>
+              <Grid item xs={6}>
                 {feature.type === 'categorical' && feature.values ? (
-                  <select
+                  <TextField
+                    select
+                    size="small"
                     value={feature.value || ''}
                     onChange={(e) => {
-                      const newFeatures = [...inputFeatures];
+                      const newFeatures = [...features];
                       newFeatures[index].value = e.target.value;
-                      setInputFeatures(newFeatures);
-                      onUploadFeatures(newFeatures);
+                      setFeatures(newFeatures);
                     }}
-                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                    fullWidth
                     disabled={feature.locked}
+                    SelectProps={{
+                      native: true,
+                    }}
                   >
                     <option value="" disabled>Select {feature.name}</option>
                     {feature.values.map((value, i) => (
                       <option key={i} value={value}>{value.toString()}</option>
                     ))}
-                  </select>
+                  </TextField>
                 ) : feature.type === 'categorical' && feature.values === undefined ? (
-                  <select
+                  <TextField
+                    select
+                    size="small"
                     value={feature.value || ''}
                     onChange={(e) => {
-                      const newFeatures = [...inputFeatures];
+                      const newFeatures = [...features];
                       newFeatures[index].value = e.target.value;
-                      setInputFeatures(newFeatures);
-                      onUploadFeatures(newFeatures);
+                      setFeatures(newFeatures);
                     }}
-                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                    fullWidth
                     disabled={feature.locked}
+                    SelectProps={{
+                      native: true,
+                    }}
                   >
                     <option value="" disabled>Select {feature.name}</option>
                     <option value="true">True</option>
                     <option value="false">False</option>
-                  </select>
+                  </TextField>
                 ) : (
-                  <input
+                  <TextField
                     type="number"
+                    size="small"
                     placeholder={`Enter ${feature.name}`}
-                    style={{ width: '100%', padding: '8px', boxSizing: 'border-box' }}
+                    fullWidth
                     value={feature.value || ''}
                     onChange={(e) => {
-                      const newFeatures = [...inputFeatures];
+                      const newFeatures = [...features];
                       newFeatures[index].value = e.target.value;
-                      setInputFeatures(newFeatures);
-                      onUploadFeatures(newFeatures);
+                      setFeatures(newFeatures);
                     }}
                     disabled={feature.locked}
                   />
@@ -270,17 +355,43 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
             </Grid>
           ))}
         </form>
-        <Box sx={{ textAlign: 'right' }}>
-          <Button
-            variant='contained'
-            onClick={() => {
-              generateCounterfactualRef.current();
-              setDrawerInputOpen(false);
-            }}
-          >
-            Generate Counterfactual
-          </Button>
-        </Box>
+        <Divider />
+        
+        <Grid container justifyContent="center" marginTop={2}>
+          <Grid item xs={8}>
+            <Typography variant="h6" gutterBottom>Number of Counterfactuals: </Typography>
+            
+          </Grid>
+          <Grid item xs={4}>
+          <TextField
+              type="number"
+              size="small"
+              fullWidth
+              value={numCounterfactuals}
+              onChange={(e) => setNumCounterfactuals(parseInt(e.target.value))}
+              InputProps={{ inputProps: { min: 1 } }}
+            />
+          </Grid>
+          <Grid item xs={12} marginTop={2}>
+            <Box display="flex" justifyContent="flex-end">
+              <Button
+                variant='contained'
+                onClick={() => {
+                  setIsGenerating(true);
+                  generateCounterfactuals(numCounterfactuals).then(() => {
+                    setIsGenerating(false);
+                    setDrawerCounterfactualOpen(true);
+                  });
+                  setDrawerInputOpen(false);
+                }}
+              >
+                <Typography variant="h6">
+                  Generate Counterfactual
+                </Typography>
+              </Button>
+            </Box>
+          </Grid>
+        </Grid>
       </Box>
     );
   };
@@ -288,13 +399,26 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
   const renderAlternativeCounterfactuals = () => {
     return (
       <Box sx={{ padding: 2, maxHeight: "100%", overflowY: 'auto' }}>
-        <Typography variant="h6" gutterBottom>Alternative Counterfactuals</Typography>
+        <Grid container justifyContent="center" alignItems="center">
+          <Grid item xs={1}>
+            <IconButton onClick={() => setDrawerCounterfactualOpen(false)}>
+              <ChevronRightIcon />
+            </IconButton>
+          </Grid>
+          <Grid item xs={11}  >
+            <Typography variant="h5" align="right">Alternative Counterfactuals</Typography>
+          </Grid>
+        </Grid>
+        <Divider gutterBottom/>
         {alternativeCounterfactuals.map((cf, index) => (
-          <Card key={index} sx={{ marginBottom: 2, cursor: 'pointer' }} onClick={() => handleCounterfactualClick(index)}>
+          <Card key={index} sx={{ marginBottom: 2, cursor: 'pointer' }} 
+            onClick={() => {
+              setSelectedCounterfactual(alternativeCounterfactuals[index]);
+            }}>
             <CardContent>
-              <Typography variant="subtitle1">Counterfactual {index + 1}</Typography>
-              <Typography variant="body2">Prediction Probability: {cf.predictionProbability}%</Typography>
-              <Typography variant="body2">Predicted Class: {cf.predictedClass}</Typography>
+              <Typography variant="h6">Counterfactual {index + 1}</Typography>
+              <Typography variant="subtitle1">Prediction Probability: {cf.predictionProbability}%</Typography>
+              <Typography variant="subtitle1">Changes: {cf.changes.length}</Typography>
             </CardContent>
           </Card>
         ))}
@@ -302,16 +426,14 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     );
   };
 
-  const handleCounterfactualClick = (index) => {
-    setSelectedCounterfactual(alternativeCounterfactuals[index]);
-    setDrawerCounterfactualOpen(false);
-  };
-
   return (
-    <div ref={containerRef} style={{ transition: 'margin 0.3s', marginLeft: drawerInputOpen ? 800 : 0, marginRight: drawerCounterfactualOpen ? 800 : 0 }}>
+    <div ref={containerRef} style={{ transition: 'margin 0.3s', marginLeft: drawerInputOpen ? 600 : 0, marginRight: drawerCounterfactualOpen ? 400 : 0 }}>
+      <Backdrop open={isGenerating} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+        <CircularProgress color="inherit" />
+      </Backdrop>
       <Grid container alignContent={'start'} style={{ minHeight: 'calc(100vh - 64px)', width: '100%', height: '100%' }} backgroundColor='#0B2230'>
         <Grid item xs={3} style={{ display: 'flex', justifyContent: 'flex-start' }} marginTop={'20px'}>
-          {(!drawerInputOpen && !drawerCounterfactualOpen) && (
+          {( !drawerInputOpen) && (
             <Button
               edge="start"
               color="primary"
@@ -321,8 +443,8 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
               endIcon={<ChevronRightIcon />}
               style={{ borderRadius: '0 20px 20px 0' }}
             >
-              <Typography variant="h5" color={'white'}>
-                Change original instance
+              <Typography variant="h6" color={'white'}>
+                Choose original instance
               </Typography>
             </Button>
           )}
@@ -344,7 +466,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           )}
         </Grid>
         <Grid item xs={3} style={{ display: 'flex', justifyContent: 'flex-end' }} marginTop={'20px'}>
-          {(!drawerCounterfactualOpen && !drawerInputOpen) && (
+          {(!drawerCounterfactualOpen) && (
             <Button
               edge="start"
               color="primary"
@@ -354,25 +476,30 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
               startIcon={<ChevronLeftIcon />}
               style={{ borderRadius: '20px 0 0 20px' }}
             > 
-              <Typography variant="h5" color={'white'}>
-                Change Counterfactual
+              <Typography variant="h6" color={'white'}>
+                Choose Counterfactual
               </Typography>
             </Button>
           )}
         </Grid>
 
-        <Drawer anchor="left" open={drawerInputOpen} onClose={() => setDrawerInputOpen(false)}>
+        <Drawer anchor="left" open={drawerInputOpen} 
+          variant="persistent"
+          onClose={() => setDrawerInputOpen(false)}>
           <Box
-            sx={{ minWidth: 800, padding: 2, maxWidth: "80%" }}
+            sx={{ width: 600, padding: 2}}
             role="presentation"
           >
             {renderInputFeaturesForm()}
           </Box>
         </Drawer>
-
-        <Drawer anchor="right" open={drawerCounterfactualOpen} onClose={() => setDrawerCounterfactualOpen(false)}>
+        
+        <Drawer anchor="right" open={drawerCounterfactualOpen} 
+          variant="persistent"
+          onClose={() => setDrawerCounterfactualOpen(false)}
+          >
           <Box
-            sx={{ minWidth: 800, padding: 2, maxWidth: "80%" }}
+            sx={{ width: 400, padding: 2}}
             role="presentation"
           >
             {renderAlternativeCounterfactuals()}
@@ -383,21 +510,41 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           <main style={{ maxWidth: 1200, flexGrow: 1, padding: '20px' }}>
             <Card style={{ margin: '20px', backgroundColor: '#f0f0f0' }}>
               <CardContent>
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                  <div>
-                    <Typography variant="body1" style={{ fontSize: '30px' }}  color='primary' >Original Instance</Typography>
-                    <Typography variant="h6" style={{fontSize: '30px' }}  color='primary'>{selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}</Typography>
-                  </div>
-                  <div>
-                    <Typography variant="body1" style={{ fontSize: '30px' }} color='red'>Counterfactual</Typography>
-                    <Typography variant="h6" style={{ fontSize: '30px' }} color= 'red' >{selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}</Typography>
-                  </div>
-                </div>
-                <Divider />
-                {selectedCounterfactual.features.length > 0 &&
+                {
+                  selectedCounterfactual && selectedCounterfactual.changes && selectedCounterfactual.changes.length > 0 && (
+                    <>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                        <div>
+
+                          <Typography variant="body1" style={{ fontSize: '30px' }}  color='primary' >Original Instance</Typography>
+                            { selectedCounterfactual &&
+                              <Typography variant="h6" style={{fontSize: '30px' }}  color='primary'>
+                                {selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}
+                              </Typography>
+                            }
+                        </div>
+                        <div>
+                          <Typography variant="body1" style={{ fontSize: '30px' }} color='red'>Counterfactual</Typography>
+                          {
+                            selectedCounterfactual && (
+                              <Typography variant="h6" style={{ fontSize: '30px' }} color= 'red' >
+                                {selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}
+                              </Typography>
+                            )
+                          }
+                        </div>
+                        
+                      </div>
+                      <Divider />
+                    </>
+                  )
+
+                }
+                
+                {selectedCounterfactual && selectedCounterfactual.features.length > 0 &&
                   <FeatureList features={selectedCounterfactual.features} title="Features" onHideFeature={hideFeature} onLockToggle={(index) => toggleLock(index, false)} />
                 }
-                {selectedCounterfactual.hiddenFeatures.length > 0 &&
+                {selectedCounterfactual && selectedCounterfactual.hiddenFeatures.length > 0 &&
                   <HiddenFeatureList features={selectedCounterfactual.hiddenFeatures} title="Hidden Features" onShowFeature={showFeature} onLockToggle={(index) => toggleLock(index, true)} />
                 }
               </CardContent>
@@ -416,7 +563,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           style={{ margin: '20px', maxWidth: '700px' }}
           onClose={() => setOpenWarning(false)}
         >
-          Now it's time to input your original instance on the left-upper corner and start generating!
+          Input your original instance and start generating!
         </Alert>
       </Snackbar>
     </div>

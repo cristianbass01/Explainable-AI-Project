@@ -8,7 +8,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward';
 const FeatureList = ({ features, title, onHideFeature, onLockToggle }) => {
   return (
     <div style={{ margin: '20px 0' }}>
-      <Typography variant="h6" sx={{ fontSize: '30px' }}>{title}</Typography>
+      <Typography variant="h5"> {title}</Typography>
       <Box sx={{ overflowY: 'auto' }}>
         <List>
           {features.map((feature, index) => (
@@ -23,13 +23,13 @@ const FeatureList = ({ features, title, onHideFeature, onLockToggle }) => {
                 <ListItemText
                   primary={
                     <Grid container alignItems="center">
-                      <Grid item xs={5}>
-                        <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '26px' }}>
+                      <Grid item xs={5} marginLeft={'20px'}>
+                        <Typography variant="h6">
                           {feature.name.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
                         </Typography>
                       </Grid>
                       <Grid item xs={3}>
-                        <Typography variant="h6" sx={{ fontSize: '26px' }} color='primary'>
+                        <Typography variant="h6"  color='primary'>
                           {feature.value}
                         </Typography>
                       </Grid>
@@ -39,7 +39,7 @@ const FeatureList = ({ features, title, onHideFeature, onLockToggle }) => {
                           <ArrowForwardIcon color='error'/>
                         </Grid>
                         <Grid item xs={3}>
-                          <Typography variant="h6" sx={{ color: 'red', fontSize: '26px',  textAlign: 'right' }}>
+                          <Typography variant="h6" sx={{ color: 'red', textAlign: 'right' }}>
                             {feature.counterfactual}
                           </Typography> 
                         </Grid>
@@ -48,7 +48,6 @@ const FeatureList = ({ features, title, onHideFeature, onLockToggle }) => {
                     } 
                     </Grid>
                   }
-                  primaryTypographyProps={{ style: { fontWeight: 'bold', fontSize: '26px' } }}
                 />
               </ListItem>
               {index < features.length - 1 && <Divider />}

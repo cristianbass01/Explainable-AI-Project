@@ -187,12 +187,12 @@ const AppHeader = ({  setDatasetName,
       </Dialog>
       <Snackbar open={openDatasetAlert} autoHideDuration={6000} onClose={() => setOpenDatasetAlert(false)}>
         <Alert severity="error" onClose={() => setOpenDatasetAlert(false)}>
-          <Typography variant="body1">Please select a dataset</Typography>
+          <Typography variant="h6">Please select a dataset</Typography>
         </Alert>
       </Snackbar>
       <Snackbar open={openModelAlert} autoHideDuration={6000} onClose={() => setOpenModelAlert(false)}>
         <Alert severity="error" onClose={() => setOpenModelAlert(false)}>
-          <Typography variant="body1">Please select a model</Typography>
+          <Typography variant="h6">Please select a model</Typography>
         </Alert>
       </Snackbar>
     </>
@@ -226,7 +226,9 @@ const AppHeader = ({  setDatasetName,
                 startIcon={<FileOpenIcon />}
                 style={{ marginRight: '10px' }}
               >
-                Select
+                <Typography variant="h6">
+                  Select
+                </Typography>
               </Button>
               {selectDialog}
               <Button
@@ -234,7 +236,9 @@ const AppHeader = ({  setDatasetName,
                 onClick={() => navigate('/upload')}
                 startIcon={<UploadFileIcon />}
               >
-                Upload
+                <Typography variant="h6">
+                  Upload
+                </Typography>
               </Button>
             </Grid>
             <Grid item>
@@ -244,7 +248,9 @@ const AppHeader = ({  setDatasetName,
                 startIcon={<HelpOutlineIcon />}
                 onClick={() => setShowModal(true)}
               >
-                Help
+                <Typography variant="h6">
+                  Help
+                </Typography>
               </Button>
               < div >
                 <Modal show={showModal} onClose={() => setShowModal(false)}>
