@@ -8,7 +8,7 @@ const FeatureList = ({ features, title, onHideFeature, onLockToggle }) => {
   return (
     <div style={{ margin: '20px 0' }}>
       <Typography variant="h6">{title}</Typography>
-      <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+      <Box sx={{ overflowY: 'auto' }}>
         <List>
           {features.map((feature, index) => (
             <div key={index}>

@@ -14,11 +14,6 @@ const App = () => {
   const [targetVariable, setTargetVariable] = useState('');
   const generateCounterfactualRef = useRef();
 
-  const handleSelectCounterfactual = (counterfactual) => {
-    setSelectedCounterfactual(counterfactual);
-    setInputFeatures(counterfactual.features);
-  };
-
   const handleUploadFeatures = (features) => {
     setInputFeatures(features);
     const updatedCounterfactual = { ...selectedCounterfactual, features };

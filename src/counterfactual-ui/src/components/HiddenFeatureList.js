@@ -22,7 +22,7 @@ const HiddenFeatureList = ({ features, title, onShowFeature, onLockToggle }) => 
         </Typography>
       </AccordionSummary>
       <AccordionDetails>
-        <Box sx={{ maxHeight: 400, overflowY: 'auto' }}>
+        <Box sx={{ overflowY: 'auto' }}>
           <List>
             {features.map((feature, index) => (
               <div key={index}>

@@ -6,14 +6,15 @@ import FeatureList from './FeatureList';
 import HiddenFeatureList from './HiddenFeatureList';
 import IconButton from '@mui/material/IconButton';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 
 const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable, generateCounterfactualRef, onUploadFeatures, onToggleLock }) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
   const [features, setFeatures] = useState(inputFeatures);
 
-  const [openSuccess, setOpenSuccess] = useState(true);
   const [openWarning, setOpenWarning] = useState(true);
-  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerInputOpen, setDrawerInputOpen] = useState(false);
+  const [drawerCounterfactualOpen, setDrawerCounterfactualOpen] = useState(false);
 
   useEffect(() => {
     setSelectedCounterfactual({ ...counterfactual, hiddenFeatures: [], features: inputFeatures });
@@ -305,7 +306,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
             variant='contained'
             onClick={() => {
               generateCounterfactualRef.current();
-              setDrawerOpen(false);
+              setDrawerInputOpen(false);
             }}
           >
             Generate Counterfactual
@@ -317,57 +318,101 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
 
   return (
     <>
-      <IconButton
-        edge="start"
-        color="inherit"
-        aria-label="menu"
-        onClick={() => setDrawerOpen(true)}
-      >
-        <ChevronRightIcon />
-      </IconButton>
-      <div style={{ display: 'flex', transition: 'margin-left 0.3s', marginLeft: drawerOpen ? 800 : 0 }}>
-        <Drawer anchor="left" open={drawerOpen} onClose={() => setDrawerOpen(false)}>
-          <Box
-            sx={{ minWidth: 800, padding: 2, maxWidth: "80%" }}
-            role="presentation"
+      <Grid container alignContent={'start'} style={{minHeight: 'calc(100vh - 64px)', width: '100%', height: '100%' }} backgroundColor='#0B2230'>
+        <Grid item xs={3} style={{ display: 'flex', justifyContent: 'flex-start' }} marginTop={'20px'}>
+          <Button
+            edge="start"
+            color="primary"
+            variant="contained"
+            aria-label="menu"
+            onClick={() => setDrawerInputOpen(true)}
+            endIcon={<ChevronRightIcon />}
+            style={{ borderRadius: '0 20px 20px 0' }}
           >
-            {renderInputFeaturesForm()}
-          </Box>
-        </Drawer>
-        <main style={{ flexGrow: 1, padding: '20px' }}>
-          <Card style={{ margin: '20px', backgroundColor: '#f0f0f0' }}>
-            <CardContent>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
-                <div>
-                  <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Input</Typography>
-                  <Typography variant="h6" style={{ fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}</Typography>
+            Change original instance
+          </Button>
+        </Grid>
+        <Grid container direction="row" item xs={6} spacing={2} justifyContent="center" alignItems="center" marginTop={'0px'}>
+          { datasetName && (
+              <Grid item>
+                <Box border={3} borderColor="primary.main" p={1} borderRadius={5}>
+                  <Typography variant="h6" color={'white'}>Dataset Name: {datasetName}</Typography>
+                </Box>
+              </Grid>
+            )
+          }
+          { modelName && (
+              <Grid item>
+                <Box border={3} borderColor="primary.main" p={1} borderRadius={5}>
+                  <Typography variant="h6" color={'white'} >Model Name: {modelName}</Typography>
+                </Box>
+              </Grid>
+            )
+          }
+        </Grid>
+        <Grid item xs={3} style={{ display: 'flex', justifyContent: 'flex-end' }} marginTop={'20px'}>
+          <Button
+            edge="start"
+            color="primary"
+            variant="contained"
+            aria-label="menu"
+            onClick={() => setDrawerCounterfactualOpen(true)}
+            startIcon={<ChevronLeftIcon />}
+            style={{ borderRadius: '20px 0 0 20px' }}
+          >
+            Change Counterfactual
+          </Button>
+        </Grid>
+      
+      
+        <div style={{ display: 'flex', transition: 'margin-left 0.3s', marginLeft: drawerInputOpen ? 800 : 0 }}>
+          <Drawer anchor="left" open={drawerInputOpen} onClose={() => setDrawerInputOpen(false)}>
+            <Box
+              sx={{ minWidth: 800, padding: 2, maxWidth: "80%" }}
+              role="presentation"
+            >
+              {renderInputFeaturesForm()}
+            </Box>
+          </Drawer>
+        </div>
+      
+        <div style={{ display: 'flex', transition: 'margin-left 0.3s', marginLeft: drawerInputOpen ? 800 : 0 }}>
+          <Drawer anchor="right" open={drawerCounterfactualOpen} onClose={() => setDrawerCounterfactualOpen(false)}>
+            <Box
+              sx={{ minWidth: 800, padding: 2, maxWidth: "80%" }}
+              role="presentation"
+            >
+              {renderInputFeaturesForm()}
+            </Box>
+          </Drawer>
+        </div>
+
+        <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <main style={{maxWidth: 1200, flexGrow: 1, padding: '20px'}}>
+            <Card style={{ margin: '20px', backgroundColor: '#f0f0f0' }}>
+              <CardContent>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
+                  <div>
+                    <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Input</Typography>
+                    <Typography variant="h6" style={{ fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}</Typography>
+                  </div>
+                  <div>
+                    <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Counterfactual</Typography>
+                    <Typography variant="h6" style={{ color: 'red', fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}</Typography>
+                  </div>
                 </div>
-                <div>
-                  <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive' }}>Counterfactual</Typography>
-                  <Typography variant="h6" style={{ color: 'red', fontFamily: 'Pacifico, cursive' }}>{selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}</Typography>
-                </div>
-              </div>
-              <Divider />
-              <FeatureList features={selectedCounterfactual.features} title="Features" onHideFeature={hideFeature} onLockToggle={(index) => toggleLock(index, false)} />
-              <HiddenFeatureList features={selectedCounterfactual.hiddenFeatures} title="Hidden Features" onShowFeature={showFeature} onLockToggle={(index) => toggleLock(index, true)} />
-            </CardContent>
-          </Card>
-        </main>
-      </div>
-      <Snackbar
-        open={openSuccess}
-        autoHideDuration={4000}
-        onClose={() => setOpenSuccess(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-      >
-        <Alert
-          severity="success"
-          style={{ margin: '0px 0px 100px 20px', maxWidth: '700px' }}
-          onClose={() => setOpenSuccess(false)}
-        >
-          Uploaded successfully!
-        </Alert>
-      </Snackbar>
+                <Divider />
+                { selectedCounterfactual.features.length > 0 &&
+                  <FeatureList features={selectedCounterfactual.features} title="Features" onHideFeature={hideFeature} onLockToggle={(index) => toggleLock(index, false)} />
+                }
+                { selectedCounterfactual.hiddenFeatures.length > 0 &&
+                  <HiddenFeatureList features={selectedCounterfactual.hiddenFeatures} title="Hidden Features" onShowFeature={showFeature} onLockToggle={(index) => toggleLock(index, true)} />
+                }
+                </CardContent>
+            </Card>
+          </main>
+        </Grid>
+      </ Grid>
       <Snackbar
         open={openWarning}
         autoHideDuration={8000}
