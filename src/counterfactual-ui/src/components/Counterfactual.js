@@ -32,7 +32,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           return;
         }
 
-        inputFeatures = transformDatasetToInputFeatures(dataset);
+        //inputFeatures = transformDatasetToInputFeatures(dataset);
         const transformedFeatures = transformDatasetToInputFeatures(dataset);
         setFeatures(transformedFeatures);
         const targetIndex = transformedFeatures.findIndex(feature => feature.name === targetVariable);
@@ -44,7 +44,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     }
 
     fetchData();
-  }, [datasetName, setInputFeatures]);
+  }, [datasetName, setInputFeatures, targetVariable]);
 
   const transformDatasetToInputFeatures = (dataset) => {
     return Object.keys(dataset.columns).map((column) => ({
@@ -385,12 +385,12 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
               <CardContent>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <div>
-                    <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive', fontSize: '30px' }}>Original Instance</Typography>
-                    <Typography variant="h6" style={{ fontFamily: 'Pacifico, cursive',fontSize: '30px' }}>{selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}</Typography>
+                    <Typography variant="body1" style={{ fontSize: '30px' }}  color='primary' >Original Instance</Typography>
+                    <Typography variant="h6" style={{fontSize: '30px' }}  color='primary'>{selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}</Typography>
                   </div>
                   <div>
-                    <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive', fontSize: '30px' }}>Counterfactual</Typography>
-                    <Typography variant="h6" style={{ color: 'red', fontFamily: 'Pacifico, cursive', fontSize: '30px' }}>{selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}</Typography>
+                    <Typography variant="body1" style={{ fontSize: '30px' }} color='red'>Counterfactual</Typography>
+                    <Typography variant="h6" style={{ fontSize: '30px' }} color= 'red' >{selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}</Typography>
                   </div>
                 </div>
                 <Divider />

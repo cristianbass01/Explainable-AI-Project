@@ -13,7 +13,7 @@ const Home = () => {
         </Grid>
         <Grid item xs={5}>
           <Typography variant="h2" align="center" style={{ marginBottom: '30px'}} color="whitesmoke">
-            Welcome to <br /> Counterfactual Explanations
+            Welcome to <br /> <b>Cat</b>terfactual Ex<b>miao</b>nations
           </Typography>
           <Typography variant="h4" align="center" color='#2ABBFF'>
             A tool for generating counterfactual explanations <br /> for your machine learning models
