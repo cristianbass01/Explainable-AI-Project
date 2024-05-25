@@ -13,6 +13,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
   const [openWarning, setOpenWarning] = useState(true);
   const [drawerInputOpen, setDrawerInputOpen] = useState(false);
   const [drawerCounterfactualOpen, setDrawerCounterfactualOpen] = useState(false);
+  const [alternativeCounterfactuals, setAlternativeCounterfactuals] = useState([]);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -91,7 +92,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     if (String(ogFeature) === "false" && (String(cfFeature) === "false" || String(cfFeature) === "0")) {
       return false;
     }
-    return String(ogFeature) !== String(cfFeature);;
+    return String(ogFeature) !== String(cfFeature);
   }
 
   const parseCounterfactual = (raw_data) => {
@@ -175,6 +176,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           modelName: modelName,
           dataset: datasetName,
           type: 'DICE',
+          count: 5,
           featuresToVary: features.filter(feature => !feature.locked).map(feature => feature.name),
         }),
       });
@@ -182,15 +184,9 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
       const data = await response.json();
 
       if (data) {
-        const newCounterFactual = parseCounterfactual(data);
-        const updatedFeatures = newCounterFactual[0].features;
-        const updatedHiddenFeatures = newCounterFactual[0].hiddenFeatures;
-        const predictionProbability = newCounterFactual[0].predictionProbability;
-        const inputProbability = newCounterFactual[0].inputProbability;
-        const inputClass = newCounterFactual[0].inputClass;
-        const predictedClass = newCounterFactual[0].predictedClass;
-        console.log(data);
-        setSelectedCounterfactual({ predictedClass: predictedClass, inputClass: inputClass, predictionProbability: predictionProbability, inputProbability: inputProbability, features: updatedFeatures, hiddenFeatures: updatedHiddenFeatures });
+        const newCounterfactuals = parseCounterfactual(data);
+        setAlternativeCounterfactuals(newCounterfactuals);
+        setSelectedCounterfactual(newCounterfactuals[0]);
       } else {
         console.error("Counterfactual not generated:", data);
       }
@@ -289,6 +285,28 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     );
   };
 
+  const renderAlternativeCounterfactuals = () => {
+    return (
+      <Box sx={{ padding: 2, maxHeight: "100%", overflowY: 'auto' }}>
+        <Typography variant="h6" gutterBottom>Alternative Counterfactuals</Typography>
+        {alternativeCounterfactuals.map((cf, index) => (
+          <Card key={index} sx={{ marginBottom: 2, cursor: 'pointer' }} onClick={() => handleCounterfactualClick(index)}>
+            <CardContent>
+              <Typography variant="subtitle1">Counterfactual {index + 1}</Typography>
+              <Typography variant="body2">Prediction Probability: {cf.predictionProbability}%</Typography>
+              <Typography variant="body2">Predicted Class: {cf.predictedClass}</Typography>
+            </CardContent>
+          </Card>
+        ))}
+      </Box>
+    );
+  };
+
+  const handleCounterfactualClick = (index) => {
+    setSelectedCounterfactual(alternativeCounterfactuals[index]);
+    setDrawerCounterfactualOpen(false);
+  };
+
   return (
     <div ref={containerRef} style={{ transition: 'margin 0.3s', marginLeft: drawerInputOpen ? 800 : 0, marginRight: drawerCounterfactualOpen ? 800 : 0 }}>
       <Grid container alignContent={'start'} style={{ minHeight: 'calc(100vh - 64px)', width: '100%', height: '100%' }} backgroundColor='#0B2230'>
@@ -304,7 +322,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
               style={{ borderRadius: '0 20px 20px 0' }}
             >
               <Typography variant="h5" color={'white'}>
-              Change original instance
+                Change original instance
               </Typography>
             </Button>
           )}
@@ -336,9 +354,9 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
               startIcon={<ChevronLeftIcon />}
               style={{ borderRadius: '20px 0 0 20px' }}
             > 
-            <Typography variant="h5" color={'white'}>
-              Change Counterfactual
-            </Typography>
+              <Typography variant="h5" color={'white'}>
+                Change Counterfactual
+              </Typography>
             </Button>
           )}
         </Grid>
@@ -357,7 +375,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
             sx={{ minWidth: 800, padding: 2, maxWidth: "80%" }}
             role="presentation"
           >
-            {renderInputFeaturesForm()}
+            {renderAlternativeCounterfactuals()}
           </Box>
         </Drawer>
 
