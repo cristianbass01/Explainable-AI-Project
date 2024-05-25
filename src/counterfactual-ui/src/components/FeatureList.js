@@ -3,6 +3,12 @@ import { List, ListItem, ListItemText, IconButton, Typography, Divider, Box } fr
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
 
 const FeatureList = ({ features, title, onHideFeature, onLockToggle }) => {
   return (

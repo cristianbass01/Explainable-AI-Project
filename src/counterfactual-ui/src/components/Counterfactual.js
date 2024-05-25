@@ -7,18 +7,13 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import FeatureList from './FeatureList';
 import HiddenFeatureList from './HiddenFeatureList';
 
-const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFeatures, modelName, targetVariable, generateCounterfactualRef, onUploadFeatures, onToggleLock }) => {
-  const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
-  const [features, setFeatures] = useState(inputFeatures);
+const Counterfactual = ({datasetName, modelName, targetVariable }) => {
   const [openWarning, setOpenWarning] = useState(true);
   const [drawerInputOpen, setDrawerInputOpen] = useState(false);
   const [drawerCounterfactualOpen, setDrawerCounterfactualOpen] = useState(false);
-  const [alternativeCounterfactuals, setAlternativeCounterfactuals] = useState([]);
+  const [counterfactuals, setCounterfactuals] = useState([]);
+  const [originalInstance, setOriginalInstance] = useState(null);
   const containerRef = useRef(null);
-
-  useEffect(() => {
-    setSelectedCounterfactual({ ...counterfactual, hiddenFeatures: [], features: inputFeatures });
-  }, [counterfactual, inputFeatures]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,57 +27,34 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
           return;
         }
 
-        inputFeatures = transformDatasetToInputFeatures(dataset);
-        const transformedFeatures = transformDatasetToInputFeatures(dataset);
-        setFeatures(transformedFeatures);
-        const targetIndex = transformedFeatures.findIndex(feature => feature.name === targetVariable);
-        transformedFeatures.splice(targetIndex, 1);
-        setInputFeatures(transformedFeatures);
+        setOriginalInstance(Object.keys(dataset.columns).map((column) => ({
+          name: column,
+          type: dataset.columns[column].type,
+          values: dataset.columns[column].values,
+          value: null,
+          locked: false,
+          visible: false,
+        })));
       } catch (error) {
         console.error('Error fetching dataset:', error);
       }
     }
 
     fetchData();
-  }, [datasetName, setInputFeatures]);
+  }, [datasetName]);
 
-  const transformDatasetToInputFeatures = (dataset) => {
-    return Object.keys(dataset.columns).map((column) => ({
-      name: column,
-      type: dataset.columns[column].type,
-      values: dataset.columns[column].values,
-      locked: false,
-    }));
-  };
-
-  if (!selectedCounterfactual) {
+  if (!counterfactuals || counterfactuals.length === 0) {
     return <div>Loading...</div>;
   }
 
-  const hideFeature = (index) => {
-    const featureToHide = selectedCounterfactual.features[index];
-    const updatedFeatures = selectedCounterfactual.features.filter((_, i) => i !== index);
-    const updatedHiddenFeatures = [...selectedCounterfactual.hiddenFeatures, featureToHide];
-    setSelectedCounterfactual({ ...selectedCounterfactual, features: updatedFeatures, hiddenFeatures: updatedHiddenFeatures });
+  const toggleView = (featureIndex) => {
+    originalInstance[featureIndex].visible = !originalInstance[featureIndex].visible;
+    setOriginalInstance([...originalInstance]);
   };
 
-  const showFeature = (index) => {
-    const featureToShow = selectedCounterfactual.hiddenFeatures[index];
-    const updatedHiddenFeatures = selectedCounterfactual.hiddenFeatures.filter((_, i) => i !== index);
-    const updatedFeatures = [...selectedCounterfactual.features, featureToShow];
-    setSelectedCounterfactual({ ...selectedCounterfactual, hiddenFeatures: updatedHiddenFeatures, features: updatedFeatures });
-  };
-
-  const toggleLock = (index, isHidden) => {
-    if (isHidden) {
-      const updatedHiddenFeatures = [...selectedCounterfactual.hiddenFeatures];
-      updatedHiddenFeatures[index].locked = !updatedHiddenFeatures[index].locked;
-      setSelectedCounterfactual({ ...selectedCounterfactual, hiddenFeatures: updatedHiddenFeatures });
-    } else {
-      const updatedFeatures = [...selectedCounterfactual.features];
-      updatedFeatures[index].locked = !updatedFeatures[index].locked;
-      setSelectedCounterfactual({ ...selectedCounterfactual, features: updatedFeatures });
-    }
+  const toggleLock = (featureIndex) => {
+    originalInstance[featureIndex].locked = !originalInstance[featureIndex].locked;
+    setOriginalInstance([...originalInstance]);
   };
 
   const isChanged = (ogFeature, cfFeature) => {
@@ -96,10 +68,9 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
   }
 
   const parseCounterfactual = (raw_data) => {
-    return raw_data.counterfactuals.map(item => {
+    return raw_data.counterfactuals.map((item, index) => {
       const CounterfactualFeatures = [];
       const changes = [];
-      const hiddenFeatures = [];
 
       const originalData = raw_data.original;
       const predictionProbability = (item.probability * 100).toFixed(1);
@@ -137,6 +108,8 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
       }
 
       const counterFactual = {};
+      counterFactual['id'] = index;
+      counterFactual['checked'] = false;
       counterFactual['inputProbability'] = inputProbability;
       counterFactual['predictionProbability'] = predictionProbability;
       counterFactual['changes'] = changes;
@@ -185,8 +158,7 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
 
       if (data) {
         const newCounterfactuals = parseCounterfactual(data);
-        setAlternativeCounterfactuals(newCounterfactuals);
-        setSelectedCounterfactual(newCounterfactuals[0]);
+        setCounterfactuals(newCounterfactuals);
       } else {
         console.error("Counterfactual not generated:", data);
       }
@@ -289,9 +261,14 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
     return (
       <Box sx={{ padding: 2, maxHeight: "100%", overflowY: 'auto' }}>
         <Typography variant="h6" gutterBottom>Alternative Counterfactuals</Typography>
-        {alternativeCounterfactuals.map((cf, index) => (
+        {counterfactuals.map((cf, index) => (
           <Card key={index} sx={{ marginBottom: 2, cursor: 'pointer' }} onClick={() => handleCounterfactualClick(index)}>
             <CardContent>
+              <Checkbox
+                checked={cf.checked}
+                color="primary"
+                inputProps={{ 'aria-label': 'secondary checkbox' }}
+              />
               <Typography variant="subtitle1">Counterfactual {index + 1}</Typography>
               <Typography variant="body2">Prediction Probability: {cf.predictionProbability}%</Typography>
               <Typography variant="body2">Predicted Class: {cf.predictedClass}</Typography>
@@ -303,7 +280,8 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
   };
 
   const handleCounterfactualClick = (index) => {
-    setSelectedCounterfactual(alternativeCounterfactuals[index]);
+    counterfactuals[index].checked = !counterfactuals[index].checked;
+    setCounterfactuals([...counterfactuals]);
     setDrawerCounterfactualOpen(false);
   };
 
@@ -386,19 +364,19 @@ const Counterfactual = ({ counterfactual, inputFeatures, datasetName, setInputFe
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                   <div>
                     <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive', fontSize: '30px' }}>Original Instance</Typography>
-                    <Typography variant="h6" style={{ fontFamily: 'Pacifico, cursive',fontSize: '30px' }}>{selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}</Typography>
+                    <Typography variant="h6" style={{ fontFamily: 'Pacifico, cursive',fontSize: '30px' }}>{selectedCounterfactuals.inputProbability}% {targetVariable}: {selectedCounterfactuals.inputClass}</Typography>
                   </div>
                   <div>
                     <Typography variant="body1" style={{ fontFamily: 'Pacifico, cursive', fontSize: '30px' }}>Counterfactual</Typography>
-                    <Typography variant="h6" style={{ color: 'red', fontFamily: 'Pacifico, cursive', fontSize: '30px' }}>{selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}</Typography>
+                    <Typography variant="h6" style={{ color: 'red', fontFamily: 'Pacifico, cursive', fontSize: '30px' }}>{selectedCounterfactuals["predictionProbability"]}% {targetVariable}: {selectedCounterfactuals.predictedClass}</Typography>
                   </div>
                 </div>
                 <Divider />
-                {selectedCounterfactual.features.length > 0 &&
-                  <FeatureList features={selectedCounterfactual.features} title="Features" onHideFeature={hideFeature} onLockToggle={(index) => toggleLock(index, false)} />
+                {selectedCounterfactuals.features.length > 0 &&
+                  <FeatureList features={selectedCounterfactuals.features} title="Features" onHideFeature={hideFeature} onLockToggle={(index) => toggleLock(index, false)} />
                 }
-                {selectedCounterfactual.hiddenFeatures.length > 0 &&
-                  <HiddenFeatureList features={selectedCounterfactual.hiddenFeatures} title="Hidden Features" onShowFeature={showFeature} onLockToggle={(index) => toggleLock(index, true)} />
+                {selectedCounterfactuals.hiddenFeatures.length > 0 &&
+                  <HiddenFeatureList features={selectedCounterfactuals.hiddenFeatures} title="Hidden Features" onShowFeature={showFeature} onLockToggle={(index) => toggleLock(index, true)} />
                 }
               </CardContent>
             </Card>
