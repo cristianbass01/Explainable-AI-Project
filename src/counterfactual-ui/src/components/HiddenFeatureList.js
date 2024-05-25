@@ -16,7 +16,7 @@ const HiddenFeatureList = ({ features, title, onShowFeature, onLockToggle }) => 
         aria-controls="panel1a-content"
         id="panel1a-header"
       >
-        <Typography variant="h6">
+        <Typography variant="h6" sx={{ fontSize: '30px' }}>
           {hasChangedFeature && <WarningIcon style={{ color: 'red', verticalAlign: 'middle', marginRight: '5px' }} />}
           {title}
         </Typography>
@@ -39,13 +39,14 @@ const HiddenFeatureList = ({ features, title, onShowFeature, onLockToggle }) => 
                       feature.changed ? (
                         <Box component="span">
                           <span>{feature.value}</span>
-                          <span style={{ color: 'red' }}> → {feature.counterfactual}</span>
+                          <span style={{ color: 'red', fontSize: '26px' }}> → {feature.counterfactual}</span>
                         </Box>
                       ) : (
                         feature.value
                       )
                     }
-                    primaryTypographyProps={{ style: { fontWeight: 'bold' } }}
+                    primaryTypographyProps={{ style: { fontWeight: 'bold', fontSize: '26px' } }}
+                    secondaryTypographyProps={{ style: { fontSize: '26px' } }}
                   />
                 </ListItem>
                 {index < features.length - 1 && <Divider />}

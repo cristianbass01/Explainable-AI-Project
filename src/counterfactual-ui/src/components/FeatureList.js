@@ -7,7 +7,7 @@ import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 const FeatureList = ({ features, title, onHideFeature, onLockToggle }) => {
   return (
     <div style={{ margin: '20px 0' }}>
-      <Typography variant="h6">{title}</Typography>
+      <Typography variant="h6" sx={{ fontSize: '30px' }}>{title}</Typography>
       <Box sx={{ overflowY: 'auto' }}>
         <List>
           {features.map((feature, index) => (
@@ -25,13 +25,14 @@ const FeatureList = ({ features, title, onHideFeature, onLockToggle }) => {
                     feature.changed ? (
                       <Box component="span">
                         <span>{feature.value}</span>
-                        <span style={{ color: 'red' }}> → {feature.counterfactual}</span>
+                        <span style={{ color: 'red', fontSize: '26px' }}> → {feature.counterfactual}</span>
                       </Box>
                     ) : (
                       feature.value
                     )
                   }
-                  primaryTypographyProps={{ style: { fontWeight: 'bold' } }}
+                  primaryTypographyProps={{ style: { fontWeight: 'bold', fontSize: '26px' } }}
+                  secondaryTypographyProps={{ style: { fontSize: '26px' } }}
                 />
               </ListItem>
               {index < features.length - 1 && <Divider />}
