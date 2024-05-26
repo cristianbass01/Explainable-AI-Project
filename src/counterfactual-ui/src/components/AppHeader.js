@@ -12,7 +12,7 @@ import Slide from '@mui/material/Slide';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import { Button, Typography, Grid, Select, MenuItem, FormControl, InputLabel, Divider, DialogTitle, Alert, AlertTitle, Snackbar } from '@mui/material';
 import Modal from './Modal';
-import TutorialOverlay from './TutorialOverlay';
+import TutorialCounterfactualImage from './../images/React-App.png';
 import logo from './../images/logo.png';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
@@ -34,7 +34,7 @@ const AppHeader = ({  setDatasetName,
   const [datasets, setDatasets] = useState([]);
   const [models, setModels] = useState([]);
   const [modelType, setModelType] = useState('');
-  const [showModal, setShowModal] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
 
   const [openError, setOpenError] = useState(false);
   const [errorText, setErrorText] = useState('');
@@ -273,15 +273,55 @@ const AppHeader = ({  setDatasetName,
                 variant="contained"
                 color="primary"
                 startIcon={<HelpOutlineIcon />}
-                onClick={() => setShowModal(true)}
+                onClick={() => setShowHelp(true)}
               >
                 <Typography variant="h6">
                   Help
                 </Typography>
               </Button>
               < div >
-                <Modal show={showModal} onClose={() => setShowModal(false)}>
-                  <TutorialOverlay />
+                <Modal show={showHelp} onClose={() => setShowHelp(false)}>
+                  <div style={{ maxHeight: '90vh', overflow: 'auto', maxWidth: '90vw' }}>
+                    <Typography variant="h3" marginBottom={'20px'} color={'primary'}>
+                      Counterfactual Tutorial
+                    </Typography>
+                    <Divider />
+                    <Grid container>
+                      <Grid item xs={7.5}>
+                        <div style={{ display: 'flex', justifyContent: 'center', margin: "20px 0 20px 0" }}>
+                          <img src={TutorialCounterfactualImage} alt="tutorial" style={{ width: '90%', height: 'auto' }} />
+                        </div>
+                      </Grid>
+                      <Grid item xs={4.5}>
+                        <Typography variant="h5" marginTop={'20px'}>Descriptions</Typography>
+                        <Typography variant="h6"  marginTop={'20px'}><dd>(A) Menu to upload or select the model and dataset you want to use to generate counterfactuals.</dd></Typography>
+                        <Typography variant="h6"  marginTop={'20px'}><dd>(B) Displays the current model and dataset in use.</dd></Typography>
+                        <Typography variant="h6" marginTop={'20px'}><dd>(C) This button opens the menu where the original instance can be input to generate a counterfactual.</dd></Typography>
+                        <Typography variant="h6" marginTop={'20px'}><dd>(D) A drawer showing the generated counterfactuals with number of changes and final probabilities. You can select the counterfactual that you want to display.</dd></Typography>
+                        <Typography variant="h6" marginTop={'20px'}><dd>(E) An indicator of the probability of the original instance having income class 0 (false) and the probability of the counterfactual having class 1 (true). Here the values can be also categorical values.</dd></Typography>
+                        <Typography variant="h6" marginTop={'20px'}><dd>(F) A binned value of the original instance. It can show the values Low, Medium or High based on how the original value is placed relatively to the other instances in the dataset.</dd></Typography>
+                        <Typography variant="h6" marginTop={'20px'}><dd>(G) Used local binning to show if the new value is Higher or Lower than the original input value.</dd></Typography>
+                        <Typography variant="h6" marginTop={'20px'}><dd>(H) A menu of hidden features so you can focus only on the ones that changed.</dd></Typography>
+                        <Typography variant="h6" marginTop={'20px'}><dd>(I) A locking feature showing which features were allowed to change in the counterfactual. To be able to fix your age or race for example.</dd></Typography>
+                      </Grid>
+                      
+                    </Grid>
+                    
+                    
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      onClick={() => setShowHelp(false)}
+                      style={{ marginTop: '20px', float: 'right' }}
+                    >
+                      <Typography variant="h6">
+                      Understood!
+                      </Typography>
+                    </Button>
+                    
+                    
+                      
+                  </div>
                 </Modal>
               </div >
             </Grid>
