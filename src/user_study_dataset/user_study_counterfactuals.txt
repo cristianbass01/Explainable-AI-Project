@@ -1,0 +1,110 @@
+# Insance 1 
+{
+		"gender": 0.0,
+		"age": 72.0,
+		"hypertension": 1.0,
+		"heart_disease": 1.0,
+		"smoking_history": 1.0,
+		"bmi": 25.09,
+		"HbA1c_level": 7.5,
+		"blood_glucose_level": 200.0
+}
+
+# CF
+[
+    {
+		"gender": 0.0,
+		"age": 72.0,
+		"hypertension": 1.0,
+		"heart_disease": 1.0,
+		"smoking_history": 1.0,
+		"bmi": 25.09,
+		"HbA1c_level": 3.7, # lower
+		"blood_glucose_level": 163.0, # lower
+		"diabetes": 0,
+		"probability": 0.9794967577491895,
+		"original_probability": 0.004159624438598408
+	},
+    {
+		"gender": 0.0,
+		"age": 72.0,
+		"hypertension": 1.0,
+		"heart_disease": 1.0,
+		"smoking_history": 1.0,
+		"bmi": 25.09,
+		"HbA1c_level": 5.6, # lower
+		"blood_glucose_level": 80.0, # lower
+		"diabetes": 0,
+		"probability": 0.9748605087269464,
+		"original_probability": 0.004159624438598408
+	},
+    {
+		"gender": 0.0,
+		"age": 72.0,
+		"hypertension": 1.0,
+		"heart_disease": 1.0,
+		"smoking_history": 1.0,
+		"bmi": 38.16, # higher
+		"HbA1c_level": 7.5, # contradiction with lower
+		"blood_glucose_level": 100.0, # lower
+		"diabetes": 0,
+		"probability": 0.7256758034483447,
+		"original_probability": 0.004159624438598408
+	}
+]
+
+
+# Instance 2
+{
+		"gender": 0.0,
+		"age": 46.0,
+		"hypertension": 1.0,
+		"heart_disease": 1.0,
+		"smoking_history": 1.0,
+		"bmi": 20.33,
+		"HbA1c_level": 5.8,
+		"blood_glucose_level": 126.0
+}
+
+#CF
+[
+   {
+		"gender": 0.0,
+		"age": 46.0,
+		"hypertension": 1.0,
+		"heart_disease": 1.0,
+		"smoking_history": 1.0,
+		"bmi": 20.93, # higher
+		"HbA1c_level": 5.8,
+		"blood_glucose_level": 126.0,
+		"diabetes": 1,
+		"probability": 0.5848176091674606,
+		"original_probability": 0.43686045548356534
+	},
+   {
+		"gender": 0.0,
+		"age": 46.0,
+		"hypertension": 1.0,
+		"heart_disease": 1.0,
+		"smoking_history": 1.0,
+		"bmi": 16.02, # lower
+		"HbA1c_level": 5.8,
+		"blood_glucose_level": 126.0,
+		"diabetes": 1,
+		"probability": 0.5104374248136131,
+		"original_probability": 0.43686045548356534
+	},
+    {
+		"gender": 0.0,
+		"age": 46.0,
+		"hypertension": 1.0,
+		"heart_disease": 1.0,
+		"smoking_history": 1.0,
+		"bmi": 20.33, 
+		"HbA1c_level": 6.7, # higher
+		"blood_glucose_level": 199.0, #higher
+		"diabetes": 1,
+		"probability": 0.5126076158948139,
+		"original_probability": 0.43686045548356534
+	}
+]

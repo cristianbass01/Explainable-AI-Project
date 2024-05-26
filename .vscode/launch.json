@@ -8,7 +8,7 @@
             "name": "Python Debugger: Django",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/src/counterfactual/manage.py",
+            "program": "${workspaceFolder}/src/backend/counterfactual/manage.py",
             "args": ["runserver"],
             "console": "integratedTerminal",
             "justMyCode": false
