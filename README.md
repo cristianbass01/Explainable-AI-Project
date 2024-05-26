@@ -1,4 +1,4 @@
-# Project description
+# Catterfactuals
 
 ## Visual and interactive counterfactual explanations for models on tabular data
 
@@ -29,4 +29,4 @@ Currently we support only DiCE. To add more counterfactual generation methods we
 This is how our UI looks. For more details refer to the final report.
 ![REACT UI](./figures/React-App.pdf)
 
-Advisor: prof. Erik Štrumbelj
+## Advisor: prof. Erik Štrumbelj
