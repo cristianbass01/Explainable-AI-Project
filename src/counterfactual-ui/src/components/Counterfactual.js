@@ -8,8 +8,10 @@ import FeatureList from './FeatureList';
 import HiddenFeatureList from './HiddenFeatureList';
 import ShuffleIcon from '@mui/icons-material/Shuffle';
 import CircularProgress from '@mui/material/CircularProgress';
+import AppHeader from './AppHeader';
+import LoadingCat from './../images/cat-cats.gif';
 
-const Counterfactual = ({datasetName, modelName, targetVariable }) => {
+const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, targetVariable, setTargetVariable}) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
   const [features, setFeatures] = useState([]);
   const [openWarning, setOpenWarning] = useState(true);
@@ -17,6 +19,7 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
   const [drawerCounterfactualOpen, setDrawerCounterfactualOpen] = useState(false);
   const [alternativeCounterfactuals, setAlternativeCounterfactuals] = useState([]);
   const [numCounterfactuals, setNumCounterfactuals] = useState(1);
+  const [selectedCardIndex, setSelectedCardIndex] = useState(null);
   const containerRef = useRef(null);
 
   const [isShuffling, setIsShuffling] = useState(false);
@@ -205,9 +208,6 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
         return acc;
       }, {});
 
-      console.log('Query:', query);
-      console.log('Number of counterfactuals:', count);
-
       const response = await fetch('http://localhost:8000/counterfactual/', {
         method: 'POST',
         headers: {
@@ -230,6 +230,7 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
         const newCounterfactuals = parseCounterfactual(data);
         setAlternativeCounterfactuals(newCounterfactuals);
         setSelectedCounterfactual(newCounterfactuals[0]);
+        setSelectedCardIndex(0);
       } else {
         console.error("Counterfactual not generated:", data);
       }
@@ -246,9 +247,6 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
 
     return (
       <Box sx={{ padding: 2, maxHeight: "100%", overflowY: 'auto' }}>
-        <Backdrop open={isShuffling} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-          <CircularProgress color="inherit" />
-        </Backdrop>
         <Grid container justifyContent="center" alignItems="center" marginBottom={'10px'}>
           <Grid item xs={11}>
             <Typography variant="h5">Input Features</Typography>
@@ -378,6 +376,8 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
                 variant='contained'
                 onClick={() => {
                   setIsGenerating(true);
+                  setAlternativeCounterfactuals([]);
+                  setSelectedCounterfactual(null);
                   generateCounterfactuals(numCounterfactuals).then(() => {
                     setIsGenerating(false);
                     setDrawerCounterfactualOpen(true);
@@ -405,15 +405,22 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
               <ChevronRightIcon />
             </IconButton>
           </Grid>
-          <Grid item xs={11}  >
+          <Grid item xs={11}>
             <Typography variant="h5" align="right">Alternative Counterfactuals</Typography>
           </Grid>
         </Grid>
-        <Divider gutterBottom/>
+        <Divider sx={{ marginBottom: 2 }}/>
         {alternativeCounterfactuals.map((cf, index) => (
-          <Card key={index} sx={{ marginBottom: 2, cursor: 'pointer' }} 
+          <Card key={index} 
+                sx={{ 
+                  marginBottom: 2, 
+                  cursor: 'pointer',
+                  backgroundColor: selectedCardIndex === index ? '#1976d2' : 'white',
+                  color: selectedCardIndex === index ? 'white' : 'black',
+                }} 
             onClick={() => {
               setSelectedCounterfactual(alternativeCounterfactuals[index]);
+              setSelectedCardIndex(index);
             }}>
             <CardContent>
               <Typography variant="h6">Counterfactual {index + 1}</Typography>
@@ -427,13 +434,41 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
   };
 
   return (
-    <div ref={containerRef} style={{ transition: 'margin 0.3s', marginLeft: drawerInputOpen ? 600 : 0, marginRight: drawerCounterfactualOpen ? 400 : 0 }}>
+    <>
+    <AppHeader 
+                setDatasetName={setDatasetName}
+                datasetName={datasetName}
+                setModelName={setModelName}
+                modelName={modelName}
+                setTargetVariable={setTargetVariable}
+                targetVariable={targetVariable}
+      />
+    <div ref={containerRef} style={{ transition: 'margin 0.3s', marginLeft: drawerInputOpen ? 600 : 0, marginRight: drawerCounterfactualOpen ? 400 : 0, marginTop:'64px' }}>
       <Backdrop open={isGenerating} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-        <CircularProgress color="inherit" />
+        <Box 
+          display="flex" 
+          flexDirection="column" 
+          alignItems="center" 
+          justifyContent="center"
+        >
+          <img src={LoadingCat} alt="Loading" height="200"/>
+          <CircularProgress color="inherit" />
+        </Box>
       </Backdrop>
+      <Backdrop open={isShuffling} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
+          <Box 
+            display="flex" 
+            flexDirection="column" 
+            alignItems="center" 
+            justifyContent="center"
+          >
+            <img src={LoadingCat} alt="Loading" height="200"/>
+            <CircularProgress color="inherit" />
+          </Box>
+        </Backdrop>
       <Grid container alignContent={'start'} style={{ minHeight: 'calc(100vh - 64px)', width: '100%', height: '100%' }} backgroundColor='#0B2230'>
-        <Grid item xs={3} style={{ display: 'flex', justifyContent: 'flex-start' }} marginTop={'20px'}>
-          {( !drawerInputOpen) && (
+        {( !drawerInputOpen) && (
+        <Grid item xs={3.5} style={{ display: 'flex', justifyContent: 'flex-start' }} marginTop={'20px'}>
             <Button
               edge="start"
               color="primary"
@@ -447,9 +482,14 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
                 Choose original instance
               </Typography>
             </Button>
-          )}
         </Grid>
-        <Grid container direction="row" item xs={6} spacing={2} justifyContent="center" alignItems="center" marginTop={'0px'}>
+        )}
+        <Grid container direction="row" 
+            item xs= {(!drawerCounterfactualOpen && !drawerInputOpen) ? 5 : (!drawerCounterfactualOpen || !drawerInputOpen) ? 8.5 : 12}
+            spacing={2} 
+            justifyContent="center" 
+            alignItems="center" 
+            marginTop={'0px'}>
           {datasetName && (
             <Grid item>
               <Box border={3} borderColor="primary.main" p={1} borderRadius={5}>
@@ -465,8 +505,8 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
             </Grid>
           )}
         </Grid>
-        <Grid item xs={3} style={{ display: 'flex', justifyContent: 'flex-end' }} marginTop={'20px'}>
-          {(!drawerCounterfactualOpen) && (
+        {(!drawerCounterfactualOpen) && (
+        <Grid item xs={3.5} style={{ display: 'flex', justifyContent: 'flex-end' }} marginTop={'20px'}>
             <Button
               edge="start"
               color="primary"
@@ -480,14 +520,14 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
                 Choose Counterfactual
               </Typography>
             </Button>
-          )}
         </Grid>
+        )}
 
         <Drawer anchor="left" open={drawerInputOpen} 
           variant="persistent"
           onClose={() => setDrawerInputOpen(false)}>
           <Box
-            sx={{ width: 600, padding: 2}}
+            sx={{ width: 600, padding: 2, marginTop: '64px'}}
             role="presentation"
           >
             {renderInputFeaturesForm()}
@@ -497,9 +537,9 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
         <Drawer anchor="right" open={drawerCounterfactualOpen} 
           variant="persistent"
           onClose={() => setDrawerCounterfactualOpen(false)}
-          >
+          marginTop={'64px'}>
           <Box
-            sx={{ width: 400, padding: 2}}
+            sx={{ width: 400, padding: 2, marginTop: '64px'}}
             role="presentation"
           >
             {renderAlternativeCounterfactuals()}
@@ -567,6 +607,7 @@ const Counterfactual = ({datasetName, modelName, targetVariable }) => {
         </Alert>
       </Snackbar>
     </div>
+    </>
   );
 };
 

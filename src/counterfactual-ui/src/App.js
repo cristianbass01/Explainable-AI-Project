@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import AppHeader from './components/AppHeader';
 import Counterfactual from './components/Counterfactual';
 import UploadPage from './components/UploadPage';
 import Home from './components/Home';
@@ -16,15 +15,6 @@ const App = () => {
         <Route path="/" element={<Navigate to="/home" />} />
         <Route path="/upload" 
           element={
-            <>
-              <AppHeader 
-                setTargetVariable={setTargetVariable}
-                targetVariable={targetVariable}
-                setDatasetName={setDatasetName}
-                datasetName={datasetName}
-                setModelName={setModelName}
-                modelName={modelName}
-              />
               <UploadPage 
                 setDatasetName={setDatasetName} 
                 datasetName={datasetName} 
@@ -33,41 +23,30 @@ const App = () => {
                 setTargetVariable={setTargetVariable} 
                 targetVariable={targetVariable}
               />
-            </>
           } />
         <Route 
           path="/home" 
-          element={
-            <>
-              <AppHeader 
-                setTargetVariable={setTargetVariable}
-                targetVariable={targetVariable}
-                setDatasetName={setDatasetName}
-                datasetName={datasetName}
-                setModelName={setModelName}
-                modelName={modelName}
-              />
-              < Home />
-            </>
+          element={    
+            < Home 
+              datasetName={datasetName} 
+              setDatasetName={setDatasetName} 
+              modelName={modelName} 
+              setModelName={setModelName} 
+              targetVariable={targetVariable} 
+              setTargetVariable={setTargetVariable}
+            />
           } 
         />
         <Route path="/counterfactual" 
-          element={
-            <>
-              <AppHeader 
-                setTargetVariable={setTargetVariable}
-                targetVariable={targetVariable}
-                setDatasetName={setDatasetName}
-                datasetName={datasetName}
-                setModelName={setModelName}
-                modelName={modelName}
-              />
+          element={  
               <Counterfactual 
                 datasetName={datasetName}
+                setDatasetName={setDatasetName}
                 modelName={modelName}
+                setModelName={setModelName}
                 targetVariable={targetVariable}
+                setTargetVariable={setTargetVariable}
               />
-            </>
           }
         />
       </Routes>

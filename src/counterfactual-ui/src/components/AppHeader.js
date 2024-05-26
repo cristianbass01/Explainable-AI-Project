@@ -197,9 +197,11 @@ const AppHeader = ({  setDatasetName,
       </Snackbar>
     </>
   );
+
   return (
     <>
-      <AppBar position="static" style={{ background: '#f5f5f5', color: '#000', height: '64px' }}>
+      <AppBar position="fixed" style={{ background: '#f5f5f5', color: '#000', height: '64px' }}
+        sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>
           <Grid container spacing={2} alignItems="center">
             <Grid item xs>
