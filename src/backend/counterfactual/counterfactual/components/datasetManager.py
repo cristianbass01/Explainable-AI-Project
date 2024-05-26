@@ -76,6 +76,7 @@ class Dataset:
                                    if dataset[col].nunique() > 10 and col != target]
         
         self.cat_features = [col for col in dataset.columns if col not in self.continuous_features and col != target]
+        self.possbile_bool_features = [col for col in self.cat_features if dataset[col].nunique() == 2]
 
 
     def get_categorical_feat(self) -> List[str]:
@@ -94,7 +95,10 @@ class Dataset:
         return self.target
     
     def sample(self, n: int) -> pd.DataFrame:
-        return self.dataset.sample(n)
+        sample = self.dataset.sample(n)
+        for col in self.possbile_bool_features:
+            sample[col] = sample[col].map({1: True, 0: False}, na_action='ignore')
+        return sample
 
 class DatasetManager:
     """
