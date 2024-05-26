@@ -94,10 +94,14 @@ class Dataset:
     def get_target(self) -> str:
         return self.target
     
+    def convert_features_to_bool(self, input: pd.DataFrame) -> str:
+        for col in self.possbile_bool_features:
+            input[col] = input[col].replace({1: True, 0: False})
+        return input
+    
     def sample(self, n: int) -> pd.DataFrame:
         sample = self.dataset.sample(n)
-        for col in self.possbile_bool_features:
-            sample[col] = sample[col].map({1: True, 0: False}, na_action='ignore')
+        sample = self.convert_features_to_bool(sample)
         return sample
 
 class DatasetManager:

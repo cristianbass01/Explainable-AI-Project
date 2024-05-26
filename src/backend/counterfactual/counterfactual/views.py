@@ -87,6 +87,9 @@ def gen_counterfactual(request: HttpRequest) -> HttpResponse:
         binned_query = gb_binner.bin_with_values(query_with_probability)
         counterfactuals = cf_binner.bin(counterfactuals, query.squeeze())
 
+        binned_query = dataset.convert_features_to_bool(binned_query)
+        counterfactuals = dataset.convert_features_to_bool(counterfactuals)
+
         res = {'counterfactuals': counterfactuals.to_dict(orient='records'),
                             'original': binned_query.to_dict(orient='records')[0]}
         return JsonResponse(res)
