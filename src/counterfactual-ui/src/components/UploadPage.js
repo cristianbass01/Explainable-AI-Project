@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Box, Button, TextField, Typography, Grid, Paper, Select, MenuItem, FormControl, InputLabel, Divider } from '@mui/material';
+import { Box, Button, TextField, Typography, Grid, Paper, Select, MenuItem, FormControl, InputLabel, Divider, Snackbar, Alert, AlertTitle } from '@mui/material';
 import {PostAdd, NoteAdd, Upload} from '@mui/icons-material'
 import { useNavigate } from 'react-router-dom';
 import AppHeader from './AppHeader';
@@ -17,6 +17,16 @@ const UploadPage = ({ datasetName,
   const [modelFile, setModelFile] = useState(null);
   const [modelType, setModelType] = useState('');
   const navigate = useNavigate();
+
+  const [openError, setOpenError] = useState(false);
+  const [errorText, setErrorText] = useState('');
+
+  const handleError = () => {
+    setOpenError(true);
+    setTimeout(() => {
+      setOpenError(false);
+    }, 10000);
+  };
 
   useEffect(() => {
     setDatasetName('');
@@ -62,9 +72,10 @@ const UploadPage = ({ datasetName,
       };
   
       const datasetResponse = await fetch('http://localhost:8000/uploadDataset/', options);
-      const datasetData = await datasetResponse;
-      console.log(datasetData);
-  
+      if (!datasetResponse.ok) {
+        setErrorText('Error uploading the dataset. Please try again.');
+        handleError();
+      }
       const modelFormData = new FormData();
       const modelTitle = modelFile.name.split('.')[0];
   
@@ -81,12 +92,18 @@ const UploadPage = ({ datasetName,
       };
   
       const modelResponse = await fetch('http://localhost:8000/uploadModels/', modelOptions);
-      const modelData = await modelResponse;
-      console.log(modelData);
+
+      if (!modelResponse.ok) {
+        setErrorText('Error uploading the model. Please try again.');
+        handleError();
+      }
+
       navigate('/counterfactual');
   
     } catch (error) {
       console.error(error);
+      setErrorText('Error uploading files. Please try again.');
+      handleError();
     }
   };
 
@@ -100,6 +117,14 @@ const UploadPage = ({ datasetName,
                   setModelName={setModelName}
                   modelName={modelName}
                 />
+
+      <Snackbar open={openError} autoHideDuration={10000} onClose={() => setOpenError(false)}>
+        <Alert severity="error" variant="filled" onClose={() => setOpenError(false)}>
+          <AlertTitle>Error</AlertTitle>
+          {errorText}
+        </Alert>
+      </Snackbar>
+
       <Box sx={{ minHeight: 'calc(100vh)', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: "#0B2230" }}>
         <Paper elevation={3} sx={{ padding: 4, width: '100%', maxWidth: 900, maxHeight: 700 }}>
           <Typography variant="h3" color='primary'>Upload Files</Typography>

@@ -10,7 +10,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import Slide from '@mui/material/Slide';
 import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
-import { Button, Typography, Grid, Select, MenuItem, FormControl, InputLabel, Divider, DialogTitle, Alert, Snackbar } from '@mui/material';
+import { Button, Typography, Grid, Select, MenuItem, FormControl, InputLabel, Divider, DialogTitle, Alert, AlertTitle, Snackbar } from '@mui/material';
 import Modal from './Modal';
 import TutorialOverlay from './TutorialOverlay';
 import logo from './../images/logo.png';
@@ -36,6 +36,16 @@ const AppHeader = ({  setDatasetName,
   const [modelType, setModelType] = useState('');
   const [showModal, setShowModal] = useState(false);
 
+  const [openError, setOpenError] = useState(false);
+  const [errorText, setErrorText] = useState('');
+
+  const handleError = () => {
+    setOpenError(true);
+    setTimeout(() => {
+      setOpenError(false);
+    }, 10000);
+  };
+
   const handleDatasetNameChange = (event) => {
     setDatasetName(event.target.value);
     const foundDataset = datasets.find((dataset) => dataset.title === event.target.value);
@@ -45,6 +55,8 @@ const AppHeader = ({  setDatasetName,
       setTargetVariable(foundDataset.target);
     } else {
       console.log('No dataset found with that name');
+      setErrorText('No dataset found with that name');
+      handleError();
     }
   };
 
@@ -57,6 +69,8 @@ const AppHeader = ({  setDatasetName,
       setModelType(foundModel.type);
     } else {
       console.log('No model found with that name');
+      setErrorText('No model found with that name');
+      handleError();
     }
   };
   
@@ -71,6 +85,8 @@ const AppHeader = ({  setDatasetName,
       setDatasets(data.datasets);
     } catch (error) {
       console.error('Error fetching loaded datasets:', error);
+      setErrorText('Error fetching loaded datasets:'+ error);
+      handleError();
     }
   };
   
@@ -85,6 +101,8 @@ const AppHeader = ({  setDatasetName,
       setModels(data.models);
     } catch (error) {
       console.error('Error fetching loaded models:', error);
+      setErrorText('Error fetching loaded models:'+ error);
+      handleError();
     }
   };
 
@@ -186,12 +204,12 @@ const AppHeader = ({  setDatasetName,
         </DialogActions>
       </Dialog>
       <Snackbar open={openDatasetAlert} autoHideDuration={6000} onClose={() => setOpenDatasetAlert(false)}>
-        <Alert severity="error" onClose={() => setOpenDatasetAlert(false)}>
+        <Alert severity="error" onClose={() => setOpenDatasetAlert(false)} variant='filled'>
           <Typography variant="h6">Please select a dataset</Typography>
         </Alert>
       </Snackbar>
       <Snackbar open={openModelAlert} autoHideDuration={6000} onClose={() => setOpenModelAlert(false)}>
-        <Alert severity="error" onClose={() => setOpenModelAlert(false)}>
+        <Alert severity="error" onClose={() => setOpenModelAlert(false)} variant='filled'>
           <Typography variant="h6">Please select a model</Typography>
         </Alert>
       </Snackbar>
@@ -200,6 +218,13 @@ const AppHeader = ({  setDatasetName,
 
   return (
     <>
+      <Snackbar open={openError} autoHideDuration={10000} onClose={() => setOpenError(false)}>
+        <Alert severity="error" variant="filled" onClose={() => setOpenError(false)}>
+          <AlertTitle>Error</AlertTitle>
+          {errorText}
+        </Alert>
+      </Snackbar>
+
       <AppBar position="fixed" style={{ background: '#f5f5f5', color: '#000', height: '64px' }}
         sx={{ zIndex: (theme) => theme.zIndex.drawer + 1 }}>
         <Toolbar>

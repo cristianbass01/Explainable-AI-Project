@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import LockIcon from '@mui/icons-material/Lock';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
-import { Box, Button, Drawer, Card, Grid, CardContent, Typography, Divider, Alert, Snackbar, IconButton, Backdrop, TextField } from '@mui/material';
+import { Box, Button, Drawer, Card, Grid, CardContent, Typography, Divider, Alert, AlertTitle, Snackbar, IconButton, Backdrop, TextField } from '@mui/material';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import FeatureList from './FeatureList';
@@ -14,7 +14,7 @@ import LoadingCat from './../images/cat-cats.gif';
 const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, targetVariable, setTargetVariable}) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
   const [features, setFeatures] = useState([]);
-  const [openWarning, setOpenWarning] = useState(true);
+  const [openInfo, setOpenInfo] = useState(true);
   const [drawerInputOpen, setDrawerInputOpen] = useState(true);
   const [drawerCounterfactualOpen, setDrawerCounterfactualOpen] = useState(false);
   const [alternativeCounterfactuals, setAlternativeCounterfactuals] = useState([]);
@@ -24,6 +24,16 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
 
   const [isShuffling, setIsShuffling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  
+  const [openError, setOpenError] = useState(false);
+  const [errorText, setErrorText] = useState('');
+
+  const handleError = () => {
+    setOpenError(true);
+    setTimeout(() => {
+      setOpenError(false);
+    }, 10000);
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,6 +44,8 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
 
         if (!dataset) {
           console.error("Dataset not found");
+          setErrorText('Dataset not found');
+          handleError();
           return;
         }
 
@@ -44,6 +56,8 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
         setSelectedCounterfactual({ features: transformedFeatures, hiddenFeatures: [] });
       } catch (error) {
         console.error('Error fetching dataset:', error);
+        setErrorText('Error fetching dataset: ' + error);
+        handleError();
       }
     }
 
@@ -74,7 +88,6 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
 
       const data = await response.json();
       const instances = data.samples;
-      console.log("Instances found:", instances);
 
       if (instances) {
         const oldFeatures = [...features];
@@ -90,6 +103,8 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
       
     } catch (error) {
       console.error('Error fetching instance:', error);
+      setErrorText('Error fetching instance: ' + error);
+      handleError();
     }
   };
 
@@ -224,6 +239,13 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
         }),
       });
 
+      if (!response.ok) {
+        console.error("HTTP error", response.status, response.statusText);
+        setErrorText('Error generating counterfactuals: ' + response.statusText);
+        handleError();
+        return;
+      }
+
       const data = await response.json();
 
       if (data) {
@@ -232,10 +254,13 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
         setSelectedCounterfactual(newCounterfactuals[0]);
         setSelectedCardIndex(0);
       } else {
-        console.error("Counterfactual not generated:", data);
+        setErrorText('No counterfactuals found');
+        handleError();
       }
     } catch (error) {
       console.error('Error generating counterfactual:', error);
+      setErrorText('Error generating counterfactuals: ' + error);
+      handleError();
     }
   };
 
@@ -268,9 +293,10 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
               const instances = await fetchInstances(1);
               if (instances && instances.length > 0) {
                 setFeatures(instances[0]);
-                console.log('Instances found:', instances[0]);
               } else {
                 console.error('No instances found');
+                setErrorText('No instances found, retry.');
+                handleError();
               }
               setIsShuffling(false);
             }} >
@@ -456,16 +482,24 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
         </Box>
       </Backdrop>
       <Backdrop open={isShuffling} sx={{ color: '#fff', zIndex: (theme) => theme.zIndex.drawer + 1 }}>
-          <Box 
-            display="flex" 
-            flexDirection="column" 
-            alignItems="center" 
-            justifyContent="center"
-          >
-            <img src={LoadingCat} alt="Loading" height="200"/>
-            <CircularProgress color="inherit" />
-          </Box>
-        </Backdrop>
+        <Box 
+          display="flex" 
+          flexDirection="column" 
+          alignItems="center" 
+          justifyContent="center"
+        >
+          <img src={LoadingCat} alt="Loading" height="200"/>
+          <CircularProgress color="inherit" />
+        </Box>
+      </Backdrop>
+      
+      <Snackbar open={openError} autoHideDuration={10000} onClose={() => setOpenError(false)}>
+        <Alert severity="error" variant="filled" onClose={() => setOpenError(false)}>
+          <AlertTitle>Error</AlertTitle>
+          {errorText}
+        </Alert>
+      </Snackbar>
+      
       <Grid container alignContent={'start'} style={{ minHeight: 'calc(100vh - 64px)', width: '100%', height: '100%' }} backgroundColor='#0B2230'>
         {( !drawerInputOpen) && (
         <Grid item xs={3.5} style={{ display: 'flex', justifyContent: 'flex-start' }} marginTop={'20px'}>
@@ -593,15 +627,16 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
         </Grid>
       </Grid>
       <Snackbar
-        open={openWarning}
+        open={openInfo}
         autoHideDuration={8000}
-        onClose={() => setOpenWarning(false)}
+        onClose={() => setOpenInfo(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
         <Alert
-          severity="warning"
+          severity="info"
+          variant='filled'
           style={{ margin: '20px', maxWidth: '700px' }}
-          onClose={() => setOpenWarning(false)}
+          onClose={() => setOpenInfo(false)}
         >
           Input your original instance and start generating!
         </Alert>
