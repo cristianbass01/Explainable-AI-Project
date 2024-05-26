@@ -177,11 +177,11 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
           if (originalData.hasOwnProperty(key)) {
             const value = originalData[key];
             if (key === featureDict['name']) {
-              featureDict['value'] = value;
+              featureDict['value'] = value.toString();
             }
           }
         }
-        featureDict['counterfactual'] = item[feature.name];
+        featureDict['counterfactual'] = item[feature.name].toString();
         featureDict['locked'] = feature.locked;
         featureDict['changed'] = isChanged(feature.value, featureDict['counterfactual']);
         if (featureDict['changed']) {
@@ -250,6 +250,8 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
 
       if (data) {
         const newCounterfactuals = parseCounterfactual(data);
+        console.log('Counterfactuals found');
+        console.log(newCounterfactuals);
         setAlternativeCounterfactuals(newCounterfactuals);
         setSelectedCounterfactual(newCounterfactuals[0]);
         setSelectedCardIndex(0);
@@ -293,6 +295,8 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
               const instances = await fetchInstances(1);
               if (instances && instances.length > 0) {
                 setFeatures(instances[0]);
+                console.log('Instances found');
+                console.log(instances[0]);
               } else {
                 console.error('No instances found');
                 setErrorText('No instances found, retry.');
