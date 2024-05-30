@@ -10,6 +10,7 @@ import ShuffleIcon from '@mui/icons-material/Shuffle';
 import CircularProgress from '@mui/material/CircularProgress';
 import AppHeader from './AppHeader';
 import LoadingCat from './../images/cat-cats.gif';
+import TooltipWrapper from './ToolTipWrapper';
 
 const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, targetVariable, setTargetVariable}) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
@@ -21,6 +22,7 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
   const [numCounterfactuals, setNumCounterfactuals] = useState(1);
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
   const containerRef = useRef(null);
+  const toggleLockRef = useRef(null);
 
   const [isShuffling, setIsShuffling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -62,6 +64,14 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
     }
 
     fetchData();
+
+    setAlternativeCounterfactuals([]);
+    setSelectedCounterfactual(null);
+    setSelectedCardIndex(null);
+
+    setDrawerCounterfactualOpen(false);
+    setDrawerInputOpen(true);
+
   }, [datasetName, targetVariable]);
 
   const handleToggleLock = (index) => {
@@ -110,6 +120,7 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
 
   const transformDatasetToInputFeatures = (dataset) => {
     return Object.keys(dataset.columns).map((column) => ({
+      title: column.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' '),
       name: column,
       type: dataset.columns[column].type,
       values: dataset.columns[column].values,
@@ -143,6 +154,9 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
     }
   };
 
+  toggleLockRef.current = toggleLock;
+  
+
   const isChanged = (ogFeature, cfFeature) => {
     if (String(ogFeature) === "true" && (String(cfFeature) === "true" || String(cfFeature) === "1")) {
       return false;
@@ -172,6 +186,7 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
 
         const featureDict = {};
         featureDict['name'] = feature.name;
+        featureDict['title'] = feature.title;
 
         for (const key in originalData) {
           if (originalData.hasOwnProperty(key)) {
@@ -294,7 +309,11 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
               setIsShuffling(true);
               const instances = await fetchInstances(1);
               if (instances && instances.length > 0) {
-                setFeatures(instances[0]);
+                const newFeatures = [...features];
+                newFeatures.forEach((feature, index) => {
+                  feature.value = instances[0][index].value.toString();
+                });
+                setFeatures(newFeatures);
                 console.log('Instances found');
                 console.log(instances[0]);
               } else {
@@ -313,9 +332,11 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
           {features.map((feature, index) => (
             <Grid container spacing={2} alignItems="center" key={index} sx={{ marginBottom: 2 }}>
               <Grid item>
-                <IconButton onClick={() => handleToggleLock(index)}>
-                  {feature.locked ? <LockIcon /> : <LockOpenIcon />}
-                </IconButton>
+                <TooltipWrapper description={`Make ${feature.title} ${feature.locked ? 'changeable' : 'not changeble'}.`}>
+                  <IconButton onClick={() => handleToggleLock(index)}>
+                    {feature.locked ? <LockIcon /> : <LockOpenIcon />}
+                  </IconButton>
+                </TooltipWrapper>
               </Grid>
               <Grid item xs>
                 <Typography variant="h6" noWrap>
@@ -327,7 +348,7 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
                   <TextField
                     select
                     size="small"
-                    value={feature.value || ''}
+                    value={feature.value !== null && feature.value !== undefined ? feature.value : ''}
                     onChange={(e) => {
                       const newFeatures = [...features];
                       newFeatures[index].value = e.target.value;
@@ -348,7 +369,7 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
                   <TextField
                     select
                     size="small"
-                    value={feature.value || ''}
+                    value={feature.value !== null && feature.value !== undefined ? feature.value : ''}
                     onChange={(e) => {
                       const newFeatures = [...features];
                       newFeatures[index].value = e.target.value;
@@ -370,7 +391,7 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
                     size="small"
                     placeholder={`Enter ${feature.name}`}
                     fullWidth
-                    value={feature.value || ''}
+                    value={feature.value !== null && feature.value !== undefined ? feature.value : ''}
                     onChange={(e) => {
                       const newFeatures = [...features];
                       newFeatures[index].value = e.target.value;
