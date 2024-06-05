@@ -1,4 +1,4 @@
-# Catterfactuals
+#  <img src="https://github.com/cristianbass01/Explainable-AI-Project/blob/a542b372104b3af7a3da6159b14f64f313356c65/src/counterfactual-ui/src/images/logo.png" alt="Logo" width="50" height="50"> Catterfactuals
 
 ## Visual and interactive counterfactual explanations for models on tabular data
 
