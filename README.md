@@ -1,4 +1,4 @@
-#  <img src="https://github.com/cristianbass01/Explainable-AI-Project/blob/a542b372104b3af7a3da6159b14f64f313356c65/src/counterfactual-ui/src/images/logo.png" alt="Logo" width="50" height="50"> Catterfactuals
+#  <img src="https://github.com/cristianbass01/Explainable-AI-Project/blob/7d108f43e3984ea91804d6db6f3a105966083fcc/figures/logo636.png" alt="Logo" width="30" height="30"> Catterfactuals
 
 ## Visual and interactive counterfactual explanations for models on tabular data
 
@@ -23,10 +23,13 @@ In this project we'll review the related work on visual and interactive counterf
 4) Execute "npm start"
 
 ## Adding more generators 
-Currently we support only DiCE. To add more counterfactual generation methods we require you to implement the AbstractCounterfactualGenerator class with your generation algorithm and it should work.
+Currently we support only DiCE. 
+
+To add more counterfactual generation methods we require you to implement the AbstractCounterfactualGenerator class with your generation algorithm and it should work.
 
 ## UI
-This is how our UI looks. For more details refer to the final report.
-![REACT UI](./figures/React-App.pdf)
+Here you can find a video showing how our interface works:
 
-## Advisor: prof. Erik Štrumbelj
+[![Video Title](https://i.ytimg.com/vi/V7R4bYw1who/hqdefault.jpg?sqp=-oaymwEmCOADEOgC8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGBwgWShyMA8=&rs=AOn4CLD-wpxV1El1EliOdBodh0KBgl6shQ)](https://youtu.be/V7R4bYw1who)
+
+### Advisor: prof. Erik Štrumbelj
