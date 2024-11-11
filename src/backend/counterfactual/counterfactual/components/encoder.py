@@ -17,13 +17,19 @@ class Encoder:
 
         """
         self.categorical_features = dataset.get_categorical_feat()
-        self.to_encode = dataset.get_target() == 'diabetes'
+        self.to_encode = dataset.get_target() == 'diabetes' or dataset.get_target() == 'Loan_Status'
+        if dataset.get_target() == 'Loan_Status':
+            self.categorical_features.append('Loan_Status')
+            self.categorical_features.remove('Loan_Amount_Term')
+
         dataset = dataset.get_dataset()
 
         self.encoders = {}
         for feature in self.categorical_features:
             catCol = dataset[feature].astype('category')
             self.encoders[feature] = catCol.cat.categories
+
+        
 
     def encode(self, data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -40,8 +46,9 @@ class Encoder:
             return data
 
         for feature in self.categorical_features:
-            data[feature] = data[feature].astype('category').cat \
-                .set_categories(self.encoders[feature]).cat.codes
+            if feature in data.columns:
+                data[feature] = data[feature].astype('category').cat \
+                    .set_categories(self.encoders[feature]).cat.codes
 
         return data
 
@@ -62,8 +69,9 @@ class Encoder:
             return binned_query, cfs
 
         for feature in self.categorical_features:
-            binned_query[feature] = self.encoders[feature][binned_query[feature]]
-            for i, cf in cfs.iterrows():
-                cfs.loc[i, feature] = self.encoders[feature][cf[feature]]
+            if feature in binned_query.columns:
+                binned_query[feature] = self.encoders[feature][binned_query[feature]]
+                for i, cf in cfs.iterrows():
+                    cfs.loc[i, feature] = self.encoders[feature][cf[feature]]
 
         return binned_query, cfs

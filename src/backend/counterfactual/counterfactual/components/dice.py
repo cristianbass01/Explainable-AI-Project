@@ -87,7 +87,9 @@ class DiceGenerator(AbstractCounterfactualGenerator):
             Tuple[pd.DataFrame, pd.DataFrame]: A tuple containing the counterfactuals and the modified query instance.
         """
         
-        cfs = self._gen.generate_counterfactuals(query_instance, total_CFs=count, desired_class="opposite", features_to_vary=features_to_vary)
+        cfs = self._gen.generate_counterfactuals(query_instance, total_CFs=count, desired_class="opposite",
+                                                  features_to_vary=features_to_vary,
+                                                  permitted_range={'Applicant_Income': [0, 3000], 'Coapplicant_Income': [0, 3000]})
         counterfactuals = cfs.cf_examples_list[0].final_cfs_df
 
         original_prob = self._gen.predict_fn(query_instance)

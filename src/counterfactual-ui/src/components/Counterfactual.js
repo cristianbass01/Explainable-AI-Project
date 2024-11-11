@@ -15,14 +15,13 @@ import TooltipWrapper from './ToolTipWrapper';
 const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, targetVariable, setTargetVariable}) => {
   const [selectedCounterfactual, setSelectedCounterfactual] = useState(null);
   const [features, setFeatures] = useState([]);
-  const [openInfo, setOpenInfo] = useState(true);
+  const [openInfo, setOpenInfo] = useState(false);
   const [drawerInputOpen, setDrawerInputOpen] = useState(true);
   const [drawerCounterfactualOpen, setDrawerCounterfactualOpen] = useState(false);
   const [alternativeCounterfactuals, setAlternativeCounterfactuals] = useState([]);
   const [numCounterfactuals, setNumCounterfactuals] = useState(1);
   const [selectedCardIndex, setSelectedCardIndex] = useState(null);
   const containerRef = useRef(null);
-  const toggleLockRef = useRef(null);
 
   const [isShuffling, setIsShuffling] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -154,9 +153,6 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
     }
   };
 
-  toggleLockRef.current = toggleLock;
-  
-
   const isChanged = (ogFeature, cfFeature) => {
     if (String(ogFeature) === "true" && (String(cfFeature) === "true" || String(cfFeature) === "1")) {
       return false;
@@ -237,6 +233,8 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
         }
         return acc;
       }, {});
+
+      console.log('Query:', query);
 
       const response = await fetch('http://localhost:8000/counterfactual/', {
         method: 'POST',
@@ -340,7 +338,7 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
               </Grid>
               <Grid item xs>
                 <Typography variant="h6" noWrap>
-                  {feature.name.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}
+                  {feature.title}
                 </Typography>
               </Grid>
               <Grid item xs={6}>
@@ -519,7 +517,12 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
       </Backdrop>
       
       <Snackbar open={openError} autoHideDuration={10000} onClose={() => setOpenError(false)}>
-        <Alert severity="error" variant="filled" onClose={() => setOpenError(false)}>
+        <Alert 
+          severity="error" 
+          variant="filled" 
+          open={openError}
+          onClose={() => setOpenError(false)}
+        >
           <AlertTitle>Error</AlertTitle>
           {errorText}
         </Alert>
@@ -606,8 +609,8 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
         </Drawer>
 
         <Grid item xs={12} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <main style={{ maxWidth: 1200, flexGrow: 1, padding: '20px' }}>
-            <Card style={{ margin: '20px', backgroundColor: '#f0f0f0' }}>
+          <main style={{ maxWidth: 1000, flexGrow: 1, padding: '20px' }}>
+            <Card style={{ margin: '40px', backgroundColor: '#f0f0f0' }}>
               <CardContent>
                 {
                   selectedCounterfactual && selectedCounterfactual.changes && selectedCounterfactual.changes.length > 0 && (
@@ -615,10 +618,10 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
                         <div>
 
-                          <Typography variant="body1" style={{ fontSize: '30px' }}  color='primary' >Original Instance</Typography>
+                          <Typography variant="body1" style={{ fontSize: '30px' }}  color='primary' >John</Typography>
                             { selectedCounterfactual &&
                               <Typography variant="h6" style={{fontSize: '30px' }}  color='primary'>
-                                {selectedCounterfactual.inputProbability}% {targetVariable}: {selectedCounterfactual.inputClass}
+                                {selectedCounterfactual.inputProbability}% {targetVariable.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}: {selectedCounterfactual.inputClass}
                               </Typography>
                             }
                         </div>
@@ -627,7 +630,7 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
                           {
                             selectedCounterfactual && (
                               <Typography variant="h6" style={{ fontSize: '30px' }} color= 'red' >
-                                {selectedCounterfactual["predictionProbability"]}% {targetVariable}: {selectedCounterfactual.predictedClass}
+                                {selectedCounterfactual["predictionProbability"]}% {targetVariable.split('_').map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()).join(' ')}: {selectedCounterfactual.predictedClass}
                               </Typography>
                             )
                           }
@@ -658,6 +661,7 @@ const Counterfactual = ({datasetName, setDatasetName, modelName, setModelName, t
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
         <Alert
+          open={openInfo}
           severity="info"
           variant='filled'
           style={{ margin: '20px', maxWidth: '700px' }}

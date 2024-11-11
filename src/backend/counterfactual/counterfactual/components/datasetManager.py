@@ -207,6 +207,7 @@ class DatasetManager:
         Returns:
             dict: A dictionary containing the unique values of the column, or an empty dictionary.
         """
+
         if sorted(df[col].unique().tolist()) == [0, 1]:
             return {'values': np.sort(df[col].map({0: False, 1: True}).unique()).tolist()}
         elif df[col].nunique() < 12:
