@@ -25,7 +25,7 @@ In this project we'll review the related work on visual and interactive counterf
 ## Adding more generators 
 Currently we support only DiCE. 
 
-To add more counterfactual generation methods we require you to implement the AbstractCounterfactualGenerator class with your generation algorithm and it should work.
+To add more counterfactual generation methods we require you to implement the AbstractCounterfactualGenerator class with your generation algorithm.
 
 ## UI
 Here you can find a video showing how our interface works:
